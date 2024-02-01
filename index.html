@@ -6,6 +6,7 @@
 	<title>McGheeLab</title>
 
 	<!-- Reset -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/modern-normalize@2.0.0/modern-normalize.min.css">
     <link rel="stylesheet" href="Landing.css">
 	<link rel="stylesheet" href="Research_Accordian.css">
@@ -18,471 +19,382 @@
 	<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;700&display=swap" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
 
+	<!-- this content will be applied to the presentations section -->
+	<script type="module" src="/presentations/presentation_content.js" defer></script>
+
 </head>
 <body>
 	<section id="hero">
-		<!-- container for the background video of the hero-->
-		<div class="container">
-			<video autoplay muted>
-				<source src="Videos\Deposit In Lls Video.webm" type="video/webm">
-			</video>
+			<body>
+				<div class="container">
+					<video autoplay muted>
+						<source src="Videos\Deposit In Lls Video.webm" type="video/webm">
+					</video>
+					
+					<header class="head_box_big">
+						
+						<div class="loader-container">
+							<svg viewBox="0 0 500 150">
+								<text x="50%" y="50%" dy=".32em" text-anchor="middle" class="text-body">
+									McGhee Lab
+								</text>
+								<text x="50%" y="50%" dy=".32em" dx="3em" text-anchor="middle" class="text-body">
+									.
+								</text>
+								<text x="50%" y="50%" dy=".32em" dx="3em" text-anchor="middle" class="dot">
+									.
+								</text>
+							</svg>
+						</div>
 
-			<!-- McGheeLab logo animation top left-->
-			<header>
-				<div class="loader-container">
-					<!-- Air -->
-					<svg viewBox="0 0 700 160">
-						<text x="50%" y="50%" dy=".32em" text-anchor="middle" class="text-body">
-							McGhee Lab
-						</text>
-						<text x="50%" y="50%" dy=".32em" dx="3em" text-anchor="middle" class="text-body">
-							.
-						</text>
-						<text x="50%" y="50%" dy=".32em" dx="3em" text-anchor="middle" class="dot">
-							.
-						</text>
-			
-					</svg>
-				</div>
+						<nav>
+							<ul>
+								<li><a href="#">Research</a></li>
+								<li><a href="#">People</a></li>
+								<li><a href="#">Future People</a></li>
+								<li><a href="#">Software</a></li>
+								<li><a href="#">Contact</a></li>
+							</ul>
+						</nav>
+						
+					</header>
 
-				<!-- nav = Hyperlinks to other pages top right-->
-				<nav>
-					<ul>
-						<li><a href="#">Research</a></li>
-						<li><a href="#">People</a></li>
-						<li><a href="#">Future People</a></li>
-						<li><a href="#">Software</a></li>
-						<li><a href="#">Contact</a></li>
+					<div class="hero-content">
+						<h1>We build <span>in vitro models</span> to study the mechanisms driving metastisis.</h1>
+					</div>
+
+					<ul class="accordion">
+						<li class="accordion--item T1 opened" data-content="content1">
+							<div class="padding">
+								<p>.</p>
+							</div>
+							<div class="Heading">
+								<div class="Heading_box">
+									<p></p>
+								</div>
+							</div>
+							<div class="readings">
+								<div class="readings_box">
+									<p></p>
+								</div>
+							</div>
+						</li>
+						<li class="accordion--item T2" data-content="content2">
+							<div class="padding">
+								<p>. </p>
+							</div>
+							<div class="Heading">
+								<div class="Heading_box">
+									<p></p>
+								</div>
+							</div>
+							<div class="readings">
+								<div class="readings_box">
+									<p></p>
+								</div>
+							</div>
+						</li>
+						<li class="accordion--item T3" data-content="content3">
+							<div class="padding">
+								<p>. </p>
+							</div>
+							<div class="Heading">
+								<div class="Heading_box">
+									<p></p>
+								</div>
+							</div>
+							<div class="readings">
+								<div class="readings_box">
+									<p></p>
+								</div>
+							</div>
+						</li>
+						<li class="accordion--item T4" data-content="content4">
+							<div class="padding">
+								<p>. </p>
+							</div>
+							<div class="Heading">
+								<div class="Heading_box">
+									<p></p>
+								</div>
+							</div>
+							<div class="readings">
+								<div class="readings_box">
+									<p></p>
+								</div>
+							</div>
+						</li>
+						<li class="accordion--item T5" data-content="content5">
+							<div class="padding">
+								<p>. </p>
+							</div>
+							<div class="Heading">
+								<div class="Heading_box">
+									<p></p>
+								</div>
+							</div>
+							<div class="readings">
+								<div class="readings_box">
+									<p></p>
+								</div>
+							</div>
+						</li>
 					</ul>
-				</nav>
-
-			</header>
-
-			<h1>We build <span>in vitro models</span> to study the mechanisms driving metastisis.</h1>
-
-			<!-- Overview of the current research topics-->
-			<ul class="accordion">
-				<!-- Accordian tab 1 -->
-				<li class="accordion--item T1 opened" data-content="content1">
-					<!--  -->
-					<div class="padding">
-						<p>. </p>
-					</div>
-					
-					<div class="Heading">
-
-						<div class="Heading_box">
-
-							<p>Microfluidics</p>
-	
-						</div>
-
-					</div>
-
-					<!-- Description -->
-					<div class="readings">
-						<div class="readings_box">
-							<p>The test bed for our 3D printing platform, we develop μ-fluidic chips for injury, creation of cell embedded dropplets printing media, and more </p>
-						</div>
-					</div>
-
-				</li>
-				<!-- Accordian tab 2 -->
-				<li class="accordion--item T2" data-content="content2">
-					<!--  -->
-					<div class="padding">
-						<p>. </p>
-					</div>
-					<div class="Heading">
-						<div class="Heading_box">
-							<p>3D bioprinting</p>
-						</div>
-					</div>
-					<!-- Description -->
-					<div class="readings">
-						<div class="readings_box">
-							<p> Cell Embedded Liquid Like Solid (CELLS) bioink is created via droplet emmulstion and deposited into LLS via freeform 3D printing methods  </p>
-						</div>
-					</div>
-
-				</li>
-				<!-- Accordian tab 3 -->
-				<li class="accordion--item T3" data-content="content3">
-					<!--  -->
-					<div class="padding">
-						<p>. </p>
-					</div>
-
-					<div class="Heading">
-						<div class="Heading_box">
-
-							<p>Cell Migration</p>
-	
-						</div>
-					</div>
-
-					<!-- Description -->
-					<div class="readings">
-						<div class="readings_box">
-							<p> Cell Embedded Liquid Like Solid (CELLS) bioink is created via droplet emmulstion and deposited into LLS via freeform 3D printing methods  </p>
-						</div>
-					</div>
-
-				</li>
-				<!-- Accordian tab 4 -->
-				<li class="accordion--item T4" data-content="content4">
-					<!--  -->
-					<div class="padding">
-						<p>. </p>
-					</div>
-
-					<div class="Heading">
-						<div class="Heading_box">
-
-							<p>In-Situ ELISA</p>
-	
-						</div>
-					</div>
-
-					<!-- Description -->
-					<div class="readings">
-						<div class="readings_box">
-							<p> Cell Embedded Liquid Like Solid (CELLS) bioink is created via droplet emmulstion and deposited into LLS via freeform 3D printing methods  </p>
-						</div>
-					</div>
-					
-				</li>
-				<!-- Accordian tab 5 -->
-				<li class="accordion--item T5" data-content="content5">
-					<!--  -->
-					<div class="padding">
-						<p>. </p>
-					</div>
-					<div class="Heading">
-						<div class="Heading_box">
-							<p>Tissue Mechanics</p>
-						</div>
-					</div>
-
-					<!-- Description -->
-					<div class="readings">
-						<div class="readings_box">
-							<p>We study the interaction of external stress on biolocgical tissue samples</p>
-						</div>
-					</div>
-
-				</li>
-			</ul>
-
-		</div>
-	</section>
+				</div>
+			</body>
+		</section>
 
 	<div class="spacer">
-		<section id="nothing">
-			
-		</section>
+		<section id="nothing"></section>
 	</div>
-
+				
 	<section id="presentation">
-		<!-- container for the background video of the hero-->
-
 		<div id="content-container">
-			<!-- Content1 -->
-			<div id="content1" class="content">
+			<div id="content1" class="content active">
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T1.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T2.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
 					<figure class="image_media">
 						<img src="Images\T3.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T4.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T5.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
-
 			</div>
-			<!-- Content2 -->
 			<div id="content2" class="content">
 				<div class="division">
 					<figure class="image_media">
 						<img src="Images\T1.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>fdodndionon</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T2.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
 					<figure class="image_media">
 						<img src="Images\T3.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T4.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T5.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
-
 			</div>
-			<!-- Content3 -->
 			<div id="content3" class="content">
 				<div class="division">
 					<figure class="image_media">
 						<img src="Images\T1.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T2.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
 					<figure class="image_media">
 						<img src="Images\T3.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T4.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T5.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
-
 			</div>
-			<!-- Content4 -->
 			<div id="content4" class="content">
 				<div class="division">
 					<figure class="image_media">
 						<img src="Images\T1.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T2.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
 					<figure class="image_media">
 						<img src="Images\T3.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T4.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T5.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
-
 			</div>
-			<!-- Content5 -->
-			<div id="content5" class="content active">
+			<div id="content5" class="content">
 				<div class="division">
 					<figure class="image_media">
 						<img src="Images\T1.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T2.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
 					<figure class="image_media">
 						<img src="Images\T3.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T4.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
 				<div class="division">
-
 					<figure class="image_media">
 						<img src="Images\T5.png" alt="Image Description">
 					</figure>
-
 					<div class="description_media">
-						<h2>Intro</h2>
-						<p>Microfluidics</p>
+						<h2></h2>
+						<p></p>
 					</div>
 				</div>
-
 			</div>
 		</div>
-
 	</section>
 
-	<!-- GSAP plugins needed -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-	<!-- lenis smooth scroll -->
 	<script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script> 
 	<script src="Research_Accordian.js"></script>
 	<script src="lenis.js"></script>
+	<!-- populate content -->
+	<script type="module"> import { populateContent } from './content.js'; populateContent();</script>
+				
 </body>
 </html>
