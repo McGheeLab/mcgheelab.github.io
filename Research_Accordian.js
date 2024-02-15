@@ -40,7 +40,7 @@ function animateEntry(entry) {
     let tl = gsap.timeline({
         scrollTrigger: {
             trigger: entry,
-            start: 'top 70%',
+            start: 'top 60%',
             end: 'bottom 90%',
             scrub: true,
             // markers: true,

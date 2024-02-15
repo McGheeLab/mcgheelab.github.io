@@ -20,21 +20,160 @@
 }
 
 /* Global Styles */
-html {
-    font-size: 16px;
-    font-family: 'Figtree', sans-serif;
-    line-height: 1.5;
+
+@media screen and (min-width: 1200px){
+    html {
+        font-size: 16px;
+        font-family: 'Figtree', sans-serif;
+        line-height: 1.5;
+    }
+
+    h1 {
+        font-size: 4.5vw;
+        line-height: 1.2;
+        letter-spacing: -0.19813rem;
+        margin: 0 0 1rem;
+    }
+    
+    h2 {
+        font-size: 2vw;
+        line-height: 1.4;
+        letter-spacing: -0.1vw;
+        margin: 0 0 4rem;
+    }
+    
+    h3 {
+        color: var(--white-50);
+        font-size: 1.6875vw;
+        font-weight: 300;
+        margin: 0 0 4rem;
+    }
+    
+    h4 {
+        font-size: 1.6875vw;
+        letter-spacing: -0.08438rem;
+        margin: 0;
+    }
+    
+    h6 {
+        color: var(--white-50);
+        font-size: 1.125vw;
+        font-weight: 300;
+        margin: 0 0 1rem;
+    }
+
+    p {
+        font-size: 1.5rem;
+        font-weight: 300;
+        margin: 0 0 1rem;
+    }
+
+    /* Hero Section Styles */
+    #hero {
+        height: 60vh;
+    }
+
+    .intro {
+        gap: 2rem;
+        padding-top: 1rem;
+    }
+    
+    .intro_box {
+        border-radius: 1rem;
+    }
+    
+    .intro_box h2 {
+        font-size: 1.5rem;
+        font-weight: 200;
+        letter-spacing: 0.1rem;
+        padding: 1rem;
+    }
+
+    #presentation {
+        padding-block: 8rem;
+    }
+
+    #content-container {
+        padding-top: 1rem;
+    }
+    
+    .division {
+        grid-template-columns: 1.4fr 1.4fr;
+        gap: 4rem;
+        margin-inline: 4rem;
+        margin-bottom: 6rem;
+    }
+    
+    img {
+        max-width: 100%;
+    }
+    
+    .entry figure {
+        margin: 8rem;
+        padding: 8rem;
+    }
+
 }
 
-/* html {
-    font-size: 16px;
-    font-family: 'Manrope', sans-serif;
-    line-height: 1.5;
-} */
 
+@media (min-width: 1025px) and (max-width: 1200px){
+    html {
+        font-size: 16px;
+        font-family: 'Figtree', sans-serif;
+        line-height: 1.5;
+    }
+
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    html {
+        font-size: 16px;
+        font-family: 'Figtree', sans-serif;
+        line-height: 1.5;
+    }
+    
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    html {
+        font-size: 16px;
+        font-family: 'Figtree', sans-serif;
+        line-height: 1.5;
+    }
+    
+}
+
+@media screen and (max-width: 480px) {
+    html {
+        font-size: 16px;
+        font-family: 'Figtree', sans-serif;
+        line-height: 1.5;
+    }
+    
+}
+
+.Navigation {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+}
+
+.Navigation .logo {
+    flex-grow: 2;
+    justify-content: flex-start;
+    padding-left: 5%;
+    width: 1%;
+}
+
+.Navigation .links {
+    flex-grow: 1.5;
+    justify-content: flex-end;
+    align-items: center; 
+}
+
+/* General parameters like color and special properties */
 body {
     background-color: var(--gray);
-    font-size: 1.125rem;
     overflow-x: hidden;
 }
 
@@ -51,47 +190,11 @@ h2,
 h4 {
     font-family: 'Poppins', sans-serif;
     color: var(--white);
-    font-weight: 700;
-}
-
-h1 {
-    font-size: 4.5rem;
-    line-height: 1.2;
-    letter-spacing: -0.19813rem;
-    margin: 0 0 1rem;
-}
-
-h2 {
-    font-size: 3.75rem;
-    line-height: 1.4;
-    letter-spacing: -0.1875rem;
-    margin: 0 0 4rem;
-}
-
-h3 {
-    color: var(--white-50);
-    font-size: 1.6875rem;
-    font-weight: 300;
-    margin: 0 0 4rem;
-}
-
-h4 {
-    font-size: 1.6875rem;
-    letter-spacing: -0.08438rem;
-    margin: 0;
-}
-
-h6 {
-    color: var(--white-50);
-    font-size: 1.125rem;
-    font-weight: 300;
-    margin: 0 0 1rem;
 }
 
 /* Hero Section Styles */
 #hero {
     position: relative;
-    height: 60vh;
     color: var(--color-text);
     box-shadow: 0rem 0.5rem 2rem var(--color-background-hl);
 }
@@ -105,51 +208,13 @@ h6 {
     z-index: -1;
 }
 
-/* Container Styles */
-.container {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.hero-content {
+.hero-text {
     text-align: center;
+    padding-left: 3%;
 }
 
-.head_box_big {
-    padding: 1rem;
-    margin: 1rem;
-    border-radius: 1rem;
-    /* all content should be alligned center vertical  */
-    display: flex;
-    flex-direction: row;
-}
-
-/* Header Styles */
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-
-/* Navigation Styles */
-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    gap: 3rem;
-}
-
-nav ul a {
-    text-decoration: none;
-    color: var(--color-text);
-    font-size: 1.5rem;
-}
-
-/* Video Styles */
-video {
+/* Video style for the hero */
+#hero video {
     position: absolute;
     top: 0;
     left: 0;
@@ -159,158 +224,26 @@ video {
     z-index: -2;
 }
 
-/* Video Styles */
+/* space between the accordian and the presentation */
 .spacer {
-    height: 30rem;
     background-color: var(--color-background);
+    height: 40vh;
 }
 
 
-.intro {
+/* style needed to format the footer iframe */
+#footer {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 2rem;
-    text-align: center;
-    align-items: center;
-    padding-top: 1rem;
+    justify-content: space-between;
+    position: relative;
+    height: 38rem; /* Set the height to 100% of the viewport height */
+    width: 100%; /* Set the width to 100% */
+    overflow: hidden; /* Hide any overflowing content */
 }
 
-.intro_box {
-    align-content: center;
-    text-align: center;
-    background-color: var(--color-box-background);
-    outline: var(--color-background) solid 0.2rem;
-    border-radius: 1rem;
-}
-
-.intro_box h2 {
-    color: var(--color-text);
-    font-size: 1.5rem;
-    font-weight: 200;
-    text-transform: uppercase;
-    letter-spacing: 0.1rem;
-    text-align: center;
-    padding: 1rem;
-}
-
-
-/* only show the content that is active */
-.content {
-    display: none;
-}
-
-.content.active {
-    display: block;
-}
-
-#presentation {
-    padding-block: 8rem;
-}
-
-#content-container {
+.footer {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    align-items: center;
-    padding-top: 1rem;
-}
-
-.division {
-    display: grid;
-    grid-template-columns: 1.4fr 1.4fr;
-    align-items: center;
-    gap: 4rem;
-    margin-inline: 4rem;
-    margin-bottom: 6rem;
-}
-
-img {
-    max-width: 100%;
-    display: block;
-}
-
-.entry figure {
-    margin: 8rem;
-    padding: 8rem;
-    background-color: var(--white-5);
-    display: flex;
-    justify-content: center;
-}
-/* Media Queries */
-@media (max-width: 768px) {
-    /* Styles for small screens */
-    h1 {
-        font-size: 1.5rem;
-        font-weight: 10;
-        max-width: 100%;
-        line-height: 1.2;
-        letter-spacing: 0.1rem;
-        margin: 0 0 1rem;
-    }
-    
-    h2 {
-        font-size: 2.5rem;
-    }
-    
-    .division {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-        margin-inline: 2rem;
-        margin-bottom: 4rem;
-    }
-    
-    .entry figure {
-        margin: 4rem;
-        padding: 4rem;
-    }
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
-    /* Styles for medium screens */
-    h1 {
-        font-size: 4.5rem;
-    }
-    
-    h2 {
-        font-size: 3rem;
-    }
-    
-    .division {
-        grid-template-columns: 1.2fr 1.2fr;
-        gap: 3rem;
-        margin-inline: 3rem;
-        margin-bottom: 5rem;
-    }
-    
-    .entry figure {
-        margin: 6rem;
-        padding: 6rem;
-    }
-}
-
-@media (min-width: 1025px) and (max-width: 1200px) {
-    /* Styles for large screens */
-    h1 {
-        font-size: 5rem;
-    }
-    
-    h2 {
-        font-size: 3.5rem;
-    }
-    
-    .division {
-        grid-template-columns: 1.4fr 1.4fr;
-        gap: 4rem;
-        margin-inline: 4rem;
-        margin-bottom: 6rem;
-    }
-    
-    .entry figure {
-        margin: 8rem;
-        padding: 8rem;
-    }
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden; /* Hide any overflowing content */
 }
