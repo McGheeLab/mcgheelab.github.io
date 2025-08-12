@@ -1,20 +1,11 @@
-/* McGheeLab SPA – updated for persistent banner + universal quick-links subnav
-   - Top (banner + hero) never reloads
-   - Body swaps based on #/route
-   - Content comes from content.json
-   - Subnav (quick links) appears on ALL pages; swipeable on small screens
-*/
+/* McGheeLab SPA – subnav scrolling (fixed), scrollspy + auto-center, mission period pink */
 
 (() => {
   const appEl = document.getElementById('app');
   const menuBtn = document.getElementById('menuBtn');
   const navDrawer = document.getElementById('site-nav');
 
-  const state = {
-    data: null,
-    observers: [],
-    bannerHeight: 64
-  };
+  const state = { data: null, observers: [], cleanups: [], bannerHeight: 64 };
 
   // ---------- Init ----------
   document.addEventListener('DOMContentLoaded', async () => {
@@ -22,20 +13,17 @@
     setupMenu();
     await loadData();
 
-    // Set static bits from JSON
-    document.getElementById('missionText').textContent = state.data.site.mission;
+    // Hero + footer from JSON; hero uses pink highlight
+    applyMissionText();
     document.getElementById('footerMission').textContent = state.data.site.mission;
     document.getElementById('footerContact').innerHTML = formatContact(state.data.site.contact);
 
-    // Compute banner height for sticky offsets
     updateBannerHeight();
     window.addEventListener('resize', debounce(updateBannerHeight, 150));
 
-    // Router
     window.addEventListener('hashchange', onRouteChange);
     onRouteChange();
 
-    // Respect reduced motion
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       const v = document.getElementById('heroVideo');
       if (v) { v.pause(); v.removeAttribute('src'); v.load(); }
@@ -47,8 +35,7 @@
     try{
       const res = await fetch('content.json');
       state.data = await res.json();
-    }catch(err){
-      console.error('Failed to load content.json', err);
+    }catch{
       state.data = fallbackData();
     }
   }
@@ -56,10 +43,9 @@
   // ---------- Router ----------
   function onRouteChange(){
     const hash = window.location.hash || '#/mission';
-    const [, route] = hash.split('/'); // route after "#/"
-    const page = (route || 'mission').toLowerCase();
-    render(page);
-    setActiveLink(page);
+    const [, route] = hash.split('/');
+    render((route || 'mission').toLowerCase());
+    setActiveLink((route || 'mission').toLowerCase());
   }
 
   function setActiveLink(page){
@@ -69,9 +55,9 @@
   }
 
   async function render(page){
-    // Clear observers from previous page
-    state.observers.forEach(o => o.disconnect());
-    state.observers = [];
+    // cleanup
+    state.observers.forEach(o => o.disconnect()); state.observers = [];
+    state.cleanups.forEach(fn => { try{ fn(); }catch{} }); state.cleanups = [];
 
     let view;
     switch(page){
@@ -84,16 +70,11 @@
       default:          view = renderNotFound();
     }
 
-    appEl.innerHTML = '';
-    appEl.appendChild(view);
+    appEl.innerHTML = ''; appEl.appendChild(view); appEl.focus({ preventScroll: true });
 
-    // Focus main for accessibility
-    appEl.focus({ preventScroll: true });
-
-    // Scroll to just below the hero on page change
+    wireUpSubnav(view);          // ✅ links, scrollspy, auto-center
     window.scrollTo({ top: headerBottom(), behavior: 'smooth' });
 
-    // Observe reveal elements + lazy images
     enableReveal();
     enableLazyImages();
   }
@@ -102,18 +83,14 @@
   function renderMission(){
     const { missionPage } = state.data.pages;
     const wrap = sectionEl();
-
-    // Build subnav from mission sections
     const sections = missionPage?.sections || [];
     const links = sections.map(sec => ({ id: slugify(sec.slug || sec.title), label: sec.title }));
     wrap.appendChild(buildSubnav(links));
 
-    // Sections
     if (sections.length){
       sections.forEach(sec => {
         const slug = slugify(sec.slug || sec.title);
-        const s = div('section card reveal');
-        s.id = slug;
+        const s = div('section card reveal'); s.id = slug;
         s.innerHTML = `
           <div class="max-w">
             <h2>${esc(sec.title)}</h2>
@@ -131,25 +108,17 @@
     } else {
       wrap.appendChild(fallbackMessage('Update missionPage.sections in content.json'));
     }
-
     return wrap;
   }
 
   function renderResearch(){
     const { topics = [], references = [] } = state.data.pages.research || {};
     const wrap = sectionEl();
-
-    // Subnav (topics + references)
-    const links = [
-      ...topics.map(t => ({ id: t.slug, label: t.title })),
-      ...(references.length ? [{ id: 'references', label: 'References' }] : [])
-    ];
+    const links = [...topics.map(t => ({ id: t.slug, label: t.title })), ...(references.length ? [{ id: 'references', label: 'References' }] : [])];
     wrap.appendChild(buildSubnav(links));
 
-    // Topic cards
     topics.forEach(t=>{
-      const art = div('section card reveal');
-      art.id = t.slug;
+      const art = div('section card reveal'); art.id = t.slug;
       art.innerHTML = `
         <div class="max-w">
           <h2>${esc(t.title)}</h2>
@@ -165,20 +134,14 @@
       wrap.appendChild(art);
     });
 
-    // References block
-    const refs = div('section card reveal');
-    refs.id = 'references';
+    const refs = div('section card reveal'); refs.id = 'references';
     refs.innerHTML = `
       <div class="max-w">
         <h2>Selected References</h2>
         ${references?.length ? `<ol>${references.map(r => `
-          <li>
-            <strong>${esc(r.title)}</strong><br/>
-            <span>${esc(r.authors || '')}</span> <em>${esc(r.journal || '')}</em> ${r.year ? `(${esc(r.year)})` : ''}${r.doi ? ` — <a href="${esc(r.doi)}" target="_blank" rel="noopener">DOI</a>` : ''}
-          </li>
+          <li><strong>${esc(r.title)}</strong><br/><span>${esc(r.authors || '')}</span> <em>${esc(r.journal || '')}</em> ${r.year ? `(${esc(r.year)})` : ''}${r.doi ? ` — <a href="${esc(r.doi)}" target="_blank" rel="noopener">DOI</a>` : ''}</li>
         `).join('')}</ol>` : '<p>No references yet.</p>'}
-      </div>
-    `;
+      </div>`;
     wrap.appendChild(refs);
 
     return wrap;
@@ -187,15 +150,12 @@
   function renderProjects(){
     const { projects = [] } = state.data.pages.projects || {};
     const wrap = sectionEl();
-
-    // Subnav built from project list
     const links = projects.map(p => ({ id: p.slug, label: p.title }));
     wrap.appendChild(buildSubnav(links));
 
     const grid = div('max-w grid grid-fit-250');
     projects.forEach(p=>{
-      const item = div('card class-item reveal project-card');
-      item.id = p.slug;
+      const item = div('card class-item reveal project-card'); item.id = p.slug;
       item.innerHTML = `
         <div class="thumb">${imageHTML(p.image, p.imageAlt || p.title)}</div>
         <h3>${esc(p.title)}</h3>
@@ -204,7 +164,6 @@
       `;
       grid.appendChild(item);
     });
-
     wrap.appendChild(grid);
     return wrap;
   }
@@ -212,24 +171,15 @@
   function renderTeam(){
     const { team = {} } = state.data.pages;
     const wrap = sectionEl();
-
     const order = ['highschool','undergrad','grad','postdoc'];
-
-    // Subnav from categories
-    const links = order
-      .filter(group => (team?.[group] || []).length)
-      .map(group => ({ id: `team-${group}`, label: labelGroup(group) }));
+    const links = order.filter(g => (team?.[g] || []).length).map(g => ({ id: `team-${g}`, label: labelGroup(g) }));
     wrap.appendChild(buildSubnav(links));
 
-    // Sections per category
     order.forEach(group=>{
       const people = team?.[group] || [];
       if (!people.length) return;
-
-      const section = div('section reveal');
-      section.id = `team-${group}`;
+      const section = div('section reveal'); section.id = `team-${group}`;
       section.innerHTML = `<div class="max-w"><h2>${labelGroup(group)}</h2></div>`;
-
       const grid = div('max-w grid grid-fit-250');
       people.forEach(person=>{
         const card = div('card person');
@@ -241,18 +191,15 @@
         `;
         grid.appendChild(card);
       });
-
       section.appendChild(grid);
       wrap.appendChild(section);
     });
-
     return wrap;
   }
 
   function renderClasses(){
     const { classesPage = {} } = state.data.pages;
     const wrap = sectionEl();
-
     const courses = classesPage.courses || [];
     const links = [
       ...(classesPage.intro ? [{ id: 'classes-intro', label: 'Overview' }] : []),
@@ -261,8 +208,7 @@
     wrap.appendChild(buildSubnav(links));
 
     if (classesPage?.intro){
-      const intro = div('section card reveal');
-      intro.id = 'classes-intro';
+      const intro = div('section card reveal'); intro.id = 'classes-intro';
       intro.innerHTML = `<div class="max-w"><h2>Classes</h2><p>${esc(classesPage.intro)}</p></div>`;
       wrap.appendChild(intro);
     }
@@ -270,8 +216,7 @@
     const grid = div('max-w grid grid-fit-250');
     courses.forEach(c=>{
       const id = slugify(c.title);
-      const card = div('card class-item reveal');
-      card.id = id;
+      const card = div('card class-item reveal'); card.id = id;
       card.innerHTML = `
         <h3>${esc(c.title)}</h3>
         <p>${esc(c.description)}</p>
@@ -281,7 +226,6 @@
       grid.appendChild(card);
     });
     wrap.appendChild(grid);
-
     return wrap;
   }
 
@@ -289,7 +233,6 @@
     const { site } = state.data;
     const wrap = sectionEl();
 
-    // Subnav for quick jump
     wrap.appendChild(buildSubnav([
       { id: 'contact-form', label: 'Form' },
       { id: 'contact-info', label: 'Info' }
@@ -297,8 +240,7 @@
 
     const block = div('max-w grid');
 
-    const formBox = div('card class-item reveal');
-    formBox.id = 'contact-form';
+    const formBox = div('card class-item reveal'); formBox.id = 'contact-form';
     formBox.innerHTML = `
       <h2>Contact Us</h2>
       <form id="contactForm" novalidate>
@@ -316,18 +258,12 @@
       <p class="muted">This demo uses <code>mailto:</code>. Replace with your backend or a form service.</p>
     `;
 
-    const infoBox = div('card class-item reveal');
-    infoBox.id = 'contact-info';
-    infoBox.innerHTML = `
-      <h2>Info</h2>
-      ${formatContact(site.contact)}
-    `;
+    const infoBox = div('card class-item reveal'); infoBox.id = 'contact-info';
+    infoBox.innerHTML = `<h2>Info</h2>${formatContact(site.contact)}`;
 
-    block.appendChild(formBox);
-    block.appendChild(infoBox);
+    block.appendChild(formBox); block.appendChild(infoBox);
     wrap.appendChild(block);
 
-    // Simple mailto handler
     setTimeout(() => {
       const form = document.getElementById('contactForm');
       form?.addEventListener('submit', (e) => {
@@ -349,43 +285,60 @@
     return wrap;
   }
 
-  // ---------- Subnav (quick links) ----------
+  // ---------- Subnav (chips) ----------
   function buildSubnav(items){
     const subnav = document.createElement('nav');
     subnav.className = 'subnav reveal';
     subnav.setAttribute('aria-label', 'Quick links');
-
     const container = document.createElement('div');
     container.className = 'max-w';
-
     const ul = document.createElement('ul');
     ul.className = 'track';
-    ul.innerHTML = items.map(i => `<li><a href="#${esc(i.id)}" data-scroll="${esc(i.id)}">${esc(i.label)}</a></li>`).join('');
-
-    // click -> smooth scroll with offset for fixed banner + subnav height
-    ul.addEventListener('click', (e)=>{
-      const a = e.target.closest('a[data-scroll]');
-      if(!a) return;
-      e.preventDefault();
-      scrollToSection(a.getAttribute('data-scroll'));
-    });
-
-    enableDragScroll(ul); // mouse drag on desktop; touch scroll on mobile
+    ul.innerHTML = items.map(i => `<li><a href="#" data-scroll="${esc(i.id)}">${esc(i.label)}</a></li>`).join('');
     container.appendChild(ul);
     subnav.appendChild(container);
     return subnav;
+  }
+
+  function wireUpSubnav(root){
+    const subnav = root.querySelector('.subnav');
+    if(!subnav) return;
+
+    const track = subnav.querySelector('.track');
+
+    // Click to scroll (don’t touch #/route)
+    subnav.querySelectorAll('a[data-scroll]').forEach(a=>{
+      a.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const id = a.getAttribute('data-scroll');
+        subnav.querySelectorAll('a[data-scroll]').forEach(x=>{
+          const on = x === a;
+          x.classList.toggle('is-active', on);
+          x.setAttribute('aria-current', on ? 'true' : 'false');
+        });
+        scrollToSection(id, subnav);
+        centerActiveChip(track, a);   // center on manual click too
+      });
+      // Keyboard support
+      a.addEventListener('keydown', (e)=>{
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); a.click(); }
+      });
+    });
+
+    // Drag/Swipe scrolling
+    if (track) enableDragScroll(track);
+
+    // Scrollspy highlight + auto-center
+    const ids = Array.from(subnav.querySelectorAll('a[data-scroll]')).map(a=>a.getAttribute('data-scroll'));
+    initScrollSpy(ids, subnav);
   }
 
   // ---------- Behaviors ----------
   function setupMenu(){
     menuBtn.addEventListener('click', toggleMenu);
     document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeMenu(); });
-
-    // Close when clicking a nav link
     navDrawer.addEventListener('click', (e)=>{
-      const t = e.target.closest('a[data-route]');
-      if(!t) return;
-      closeMenu();
+      const t = e.target.closest('a[data-route]'); if(!t) return; closeMenu();
     });
   }
   function toggleMenu(){
@@ -435,13 +388,11 @@
     let isDown = false, startX = 0, startLeft = 0, id = 0;
     el.addEventListener('pointerdown', e => {
       isDown = true; startX = e.clientX; startLeft = el.scrollLeft;
-      id = e.pointerId; el.setPointerCapture(id);
-      el.style.cursor = 'grabbing';
+      id = e.pointerId; el.setPointerCapture(id); el.style.cursor = 'grabbing';
     });
     el.addEventListener('pointermove', e => {
       if(!isDown) return;
-      const dx = e.clientX - startX;
-      el.scrollLeft = startLeft - dx;
+      el.scrollLeft = startLeft - (e.clientX - startX);
     });
     const end = () => { isDown = false; if(id){ try{ el.releasePointerCapture(id); }catch{} } el.style.cursor=''; };
     el.addEventListener('pointerup', end);
@@ -449,7 +400,6 @@
   }
 
   function headerBottom(){
-    // Where the page body should start after route changes (just below hero)
     const hero = document.querySelector('.hero');
     const rect = hero.getBoundingClientRect();
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -462,49 +412,137 @@
     document.documentElement.style.setProperty('--banner-height', `${state.bannerHeight}px`);
   }
 
-  function scrollToSection(id){
+  function scrollToSection(id, subnavEl){
     const el = document.getElementById(id);
     if(!el) return;
-    const subnav = document.querySelector('.subnav');
-    const subnavH = subnav ? subnav.getBoundingClientRect().height : 0;
-    const offset = state.bannerHeight + subnavH + 8;
-    const y = el.getBoundingClientRect().top + window.pageYOffset - offset;
+
+    // Heights of fixed elements at the top (banner + subnav)
+    const subnavH = subnavEl
+      ? subnavEl.getBoundingClientRect().height
+      : (document.querySelector('.subnav')?.getBoundingClientRect().height || 0);
+    const offsetTop = state.bannerHeight + subnavH + 8; // padding
+
+    // Visible area height below the sticky UI
+    const visibleH = Math.max(0, window.innerHeight - offsetTop);
+
+    // Element rect
+    const rect = el.getBoundingClientRect();
+    const elCenter = rect.top + (rect.height / 2);
+
+    // We want the element's center to align with the center of the visible area
+    const targetCenter = offsetTop + (visibleH / 2);
+
+    // Compute absolute scrollTop target
+    const y = Math.max(
+      0,
+      window.pageYOffset + elCenter - targetCenter
+    );
+
     window.scrollTo({ top: y, behavior: 'smooth' });
+  }
+
+
+  // Scrollspy: highlight the section nearest the sticky top, and center chip if needed
+  function initScrollSpy(ids, subnav){
+    const track = subnav.querySelector('.track');
+
+    const setActive = (id) => {
+      let activeA = null;
+      subnav.querySelectorAll('a[data-scroll]').forEach(a=>{
+        const on = a.getAttribute('data-scroll') === id;
+        a.classList.toggle('is-active', on);
+        a.setAttribute('aria-current', on ? 'true' : 'false');
+        if (on) activeA = a;
+      });
+      if (activeA && track) centerActiveChip(track, activeA);
+    };
+
+    let ticking = false;
+    const update = () => {
+      const subnavH = subnav ? subnav.getBoundingClientRect().height : 0;
+      const offsetTop = state.bannerHeight + subnavH + 8;
+      const visibleH = Math.max(0, window.innerHeight - offsetTop);
+      const centerLine = offsetTop + (visibleH / 2);
+
+      let bestId = null;
+      let bestDist = Infinity;
+
+      ids.forEach(id=>{
+        const el = document.getElementById(id);
+        if(!el) return;
+        const r = el.getBoundingClientRect();
+        const elCenter = r.top + (r.height / 2);
+        const dist = Math.abs(elCenter - centerLine);
+        if (dist < bestDist){ bestDist = dist; bestId = id; }
+      });
+
+      if(bestId) setActive(bestId);
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { update(); ticking = false; });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    setTimeout(update, 0);
+
+    state.cleanups.push(() => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    });
+  }
+  // Center the active chip in its track when overflowed
+  function centerActiveChip(track, a){
+    if (!track || !a) return;
+    if (track.scrollWidth <= track.clientWidth) return; // no overflow
+
+    const targetLeft = a.offsetLeft - (track.clientWidth - a.offsetWidth) / 2;
+    const clamped = Math.max(0, Math.min(targetLeft, track.scrollWidth - track.clientWidth));
+
+    // Only scroll if the chip is cut off at either edge
+    const leftVisible = track.scrollLeft;
+    const rightVisible = leftVisible + track.clientWidth;
+    const chipLeft = a.offsetLeft, chipRight = chipLeft + a.offsetWidth;
+
+    const outOfView = chipLeft < leftVisible + 8 || chipRight > rightVisible - 8;
+    if (outOfView) track.scrollTo({ left: clamped, behavior: 'smooth' });
+  }
+
+  // ---------- Mission text highlight (phrase + period in pink) ----------
+  function applyMissionText(){
+    const el = document.getElementById('missionText');
+    const desired = 'We build in vitro models to study the mechanisms driving metastasis.';
+    const text = (state.data?.site?.mission || desired).trim();
+
+    // Pink phrase
+    let html = text.replace(/in vitro models/i, '<span class="hero-highlight">$&</span>');
+    // Pink period at end (if present)
+    html = html.replace(/\.\s*$/, '<span class="hero-highlight">.</span>');
+    el.innerHTML = html;
   }
 
   // ---------- Helpers ----------
   function sectionEl(){ const el = document.createElement('section'); el.className = 'section'; return el; }
   function div(cls=''){ const d=document.createElement('div'); if(cls) d.className=cls; return d; }
   function esc(str){ return (str ?? '').toString().replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s])); }
-  function imageHTML(src, alt){
-    if(!src) return '<div></div>';
-    return `<img data-src="${esc(src)}" alt="${esc(alt || '')}" loading="lazy" />`;
-  }
-  function fallbackMessage(msg){
-    const box = div('card class-item reveal'); box.innerHTML = `<div class="max-w"><p>${esc(msg)}</p></div>`; return box;
-  }
-  function labelGroup(g){
-    const map = { highschool:'High School', undergrad:'Undergraduate', grad:'Graduate', postdoc:'Postdoctoral' };
-    return map[g] || g;
-  }
+  function imageHTML(src, alt){ return src ? `<img data-src="${esc(src)}" alt="${esc(alt || '')}" loading="lazy" />` : '<div></div>'; }
+  function fallbackMessage(msg){ const box = div('card class-item reveal'); box.innerHTML = `<div class="max-w"><p>${esc(msg)}</p></div>`; return box; }
+  function labelGroup(g){ const map = { highschool:'High School', undergrad:'Undergraduate', grad:'Graduate', postdoc:'Postdoctoral' }; return map[g] || g; }
   function slugify(s=''){ return s.toString().toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
   function formatContact(c){
-    const lines = [
-      c.address ? esc(c.address) : '',
-      c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '',
-      c.phone ? `<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a>` : ''
-    ].filter(Boolean).join('<br/>');
+    const lines = [ c.address ? esc(c.address) : '', c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '', c.phone ? `<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a>` : '' ]
+      .filter(Boolean).join('<br/>');
     return `<address>${lines}</address>`;
   }
-  function debounce(fn, ms=150){
-    let t; return (...args) => { clearTimeout(t); t=setTimeout(()=>fn(...args), ms); };
-  }
+  function debounce(fn, ms=150){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
 
-  // Minimal fallback if JSON fails
   function fallbackData(){
     return {
       site: {
-        mission: 'We build simple, open, and robust bioengineering tools—microfluidics, bioprinting, and biomechanics—to make high‑impact science accessible.',
+        mission: 'We build in vitro models to study the mechanisms driving metastasis.',
         contact: { address: '123 Science Dr, Tucson, AZ 85701', email: 'info@mcgheelab.org', phone: '(520) 555-0123' }
       },
       pages: {}

@@ -88,6 +88,22 @@ a:hover{ text-decoration: underline; }
 .eyebrow{ text-transform: uppercase; letter-spacing: .18em; color: var(--muted); font-size: .85rem; margin: 0 0 8px; }
 .hero h1{ margin: 0; font-size: clamp(1.6rem, 3.8vw, 3rem); line-height: 1.2; max-width: 22ch; }
 
+/* active chip highlight */
+.subnav a.is-active,
+.subnav a[aria-current="true"]{
+  background: rgba(91,209,185,.25);
+  outline: 1px solid rgba(91,209,185,.5);
+}
+
+/* smoother horizontal swiping for the chip row */
+.subnav .track{ touch-action: pan-x; }
+
+/* pink emphasis in the hero mission line (phrase + period) */
+.hero .hero-highlight{
+  color: #ff5bb5;
+  font-weight: 700;
+}
+
 /* ============ Page Body ============ */
 .page{ padding-block: clamp(24px, 5vw, 48px); }
 .section{ margin-bottom: clamp(24px, 5vw, 56px); }
