@@ -196,7 +196,7 @@
 
     // 6) Turn on reveal + lazy images for this view
     enableReveal();
-    enableLazyMedia();
+    enableLazyImages();
   }
 
   /* ===========================
@@ -224,7 +224,7 @@
                 <p>${esc(sec.body)}</p>
                 ${sec.points ? `<ul>${sec.points.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>` : ''}
               </div>
-              ${mediaHTML(sec.image, sec.imageAlt || sec.title)}
+              ${imageHTML(sec.image, sec.imageAlt || sec.title)}
             </div>
           </div>
         `;
@@ -270,7 +270,7 @@
               ${t.keywords?.length ? `<p>${t.keywords.map(k=>`<span class="badge">${esc(k)}</span>`).join(' ')}</p>` : ''}
               ${storyHTML ? expandableHTML() : ''}  <!-- toggle button + empty details slot -->
             </div>
-            ${mediaHTML(t.image, t.imageAlt || t.title)}
+            ${imageHTML(t.image, t.imageAlt || t.title)}
           </div>
 
           ${storyHTML ? `<div class="expandable-details" hidden>${storyHTML}</div>` : ''}
@@ -325,7 +325,7 @@
 
       const item = div('card class-item reveal project-card'); item.id = p.slug;
       item.innerHTML = `
-        <div class="thumb">${mediaHTML(p.image, p.imageAlt || p.title)}</div>
+        <div class="thumb">${imageHTML(p.image, p.imageAlt || p.title)}</div>
         <h3>${esc(p.title)}</h3>
         <p>${esc(p.summary)}</p>
         ${p.tags?.length ? `<p>${p.tags.map(t=>`<span class="badge">${esc(t)}</span>`).join(' ')}</p>` : ''}
@@ -368,7 +368,7 @@
       people.forEach(person=>{
         const card = div('card person');
         card.innerHTML = `
-          ${mediaHTML(person.photo, `Photo of ${esc(person.name)}`)}
+          ${imageHTML(person.photo, `Photo of ${esc(person.name)}`)}
           <div><strong>${esc(person.name)}</strong></div>
           <div class="role">${esc(person.role || '')}</div>
           <p>${esc(person.bio || '')}</p>
@@ -559,37 +559,18 @@
   // If no story provided, return empty string and nothing will render.
   function buildStoryHTML(story){
     if (!Array.isArray(story) || story.length === 0) return '';
-    // Each block can be:
-    //   { text }  (optional)
-    //   { image, alt } OR { video, poster, alt }
-    //   OR { type:'image'|'video', src, poster?, alt?, text? }
-    return story.map(block => {
-      let mediaPart = '';
-      if (block){
-        // Normalize block media into the shape mediaHTML understands
-        if (block.type === 'video' || block.video || /\.(webm)(\?.*)?$/i.test(block.src || '')){
-          const src = block.video || block.src;
-          mediaPart = mediaHTML({ video: src, poster: block.poster || '', alt: block.alt || '' });
-        } else if (block.image || block.src){
-          const src = block.image || block.src;
-          mediaPart = mediaHTML({ image: src, alt: block.alt || '' });
-        }
-      }
-
-      const textPart = block?.text ? `<p>${esc(block.text)}</p>` : '';
-
-      // Keep the same left-text/right-media "media" layout
-      return `
-        <div class="section" style="margin-top:8px">
-          <div class="media">
-            <div>${textPart}</div>
-            ${mediaPart || '<div></div>'}
+    // Each block renders as an image (if any) + a paragraph.
+    return story.map(block => `
+      <div class="section" style="margin-top:8px">
+        <div class="media">
+          <div>
+            ${block.text ? `<p>${esc(block.text)}</p>` : ''}
           </div>
+          ${block.image ? imageHTML(block.image, block.imageAlt || '') : '<div></div>'}
         </div>
-      `;
-    }).join('');
+      </div>
+    `).join('');
   }
-
 
   // A small, reusable Expand/Collapse control
   function expandableHTML(){
@@ -679,47 +660,22 @@
     state.observers.push(io);
   }
 
-
-  // Lazy‑load images (data-src) AND videos (source[data-src]).
-  function enableLazyMedia(){
-    const targets = appEl.querySelectorAll('img[data-src], video[data-video] source[data-src]');
-    if (!targets.length) return;
-
+  // Lazy-load images that have data-src
+  function enableLazyImages(){
+    const imgs = appEl.querySelectorAll('img[data-src]');
     const io = new IntersectionObserver(entries => {
       entries.forEach(entry => {
-        if(!entry.isIntersecting) return;
-
-        const el = entry.target;
-
-        // Case 1: <img data-src="...">
-        if (el.tagName === 'IMG' && el.dataset.src){
-          el.src = el.dataset.src;
-          el.removeAttribute('data-src');
-          io.unobserve(el);
-          return;
-        }
-
-        // Case 2: <video data-video> <source data-src="...">
-        if (el.tagName === 'SOURCE' && el.dataset.src){
-          const source = el;
-          const video = source.closest('video');
-          source.src = source.dataset.src;
-          source.removeAttribute('data-src');
-
-          // Kick the video to load metadata after source is set
-          if (video){
-            video.load();
-          }
-          io.unobserve(el);
-          return;
+        if(entry.isIntersecting){
+          const img = entry.target;
+          img.src = img.dataset.src;
+          img.removeAttribute('data-src');
+          io.unobserve(img);
         }
       });
-    }, { rootMargin: '150px 0px', threshold: 0.01 });
-
-    targets.forEach(t => io.observe(t));
+    }, { rootMargin: '100px 0px', threshold: 0.01 });
+    imgs.forEach(i => io.observe(i));
     state.observers.push(io);
   }
-
 
   // TOUCH/PEN-ONLY drag for the chip row (no mouse handling, so desktop clicks always work)
   function enableDragScrollForTouchOnly(el){
@@ -915,53 +871,5 @@
     return `<address>${lines}</address>`;
   }
   function debounce(fn, ms=150){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
-    // Render either an image or a .webm video.
-  // Accepts:
-  //   - string src (auto-detects by extension)
-  //   - object { image, imageAlt }  (existing usage)
-  //   - object { video, poster, alt }
-  //   - story block { type:"video", src, poster, alt } OR { type:"image", src, alt }
-  function mediaHTML(srcOrObj, altText){
-    // Normalize into a {kind, src, alt, poster}
-    let kind = 'image', src='', alt=altText || '', poster='';
-
-    if (typeof srcOrObj === 'string'){
-      src = srcOrObj;
-      if (/\.(webm)(\?.*)?$/i.test(src)) kind = 'video';
-    } else if (srcOrObj && typeof srcOrObj === 'object'){
-      // Main topic/project objects
-      if (srcOrObj.video){
-        kind   = 'video';
-        src    = srcOrObj.video;
-        poster = srcOrObj.poster || '';
-        alt    = srcOrObj.alt || altText || '';
-      } else if (srcOrObj.image || srcOrObj.src){
-        kind = (srcOrObj.type === 'video') ? 'video' : 'image';
-        src  = srcOrObj.image || srcOrObj.src || '';
-        poster = srcOrObj.poster || '';
-        alt = srcOrObj.alt || srcOrObj.imageAlt || altText || '';
-        if (!src && srcOrObj.video){ kind='video'; src=srcOrObj.video; }
-        // Auto-detect by extension if type omitted
-        if (!srcOrObj.type && /\.(webm)(\?.*)?$/i.test(src)) kind='video';
-      } else if (srcOrObj.imageAlt){ // legacy usage {image, imageAlt}
-        kind = 'image'; src = srcOrObj.image || ''; alt = srcOrObj.imageAlt || altText || '';
-      }
-    }
-
-    if (!src) return '<div></div>';
-
-    if (kind === 'video'){
-      // Lazy‑load video: we keep source in data-src and swap it in via IntersectionObserver
-      const posterAttr = poster ? ` poster="${esc(poster)}"` : '';
-      return `
-        <video controls playsinline preload="none"${posterAttr} data-video>
-          <source data-src="${esc(src)}" type="video/webm"/>
-          Your browser does not support WebM video.
-        </video>
-      `;
-    }
-    // Default: image (lazy via data-src)
-    return `<img data-src="${esc(src)}" alt="${esc(alt || '')}" loading="lazy" />`;
-  }
 
 })();
