@@ -1,0 +1,157 @@
+{
+  "site": {
+    "name": "McGheeLab",
+    "mission": "We build simple, open, and robust bioengineering tools—microfluidics, bioprinting, and biomechanics—to make high‑impact science accessible.",
+    "contact": {
+      "address": "123 Science Dr, Tucson, AZ 85701",
+      "email": "info@mcgheelab.org",
+      "phone": "(520) 555-0123"
+    }
+  },
+  "pages": {
+    "missionPage": {
+      "sections": [
+        {
+          "title": "Accessible Tools. Reproducible Science.",
+          "body": "Our lab designs straightforward, low‑cost systems that let more people run high‑quality experiments. We publish open protocols and build hardware that can be fabricated with basic equipment.",
+          "points": [
+            "Open‑source hardware and protocols",
+            "Design for reliability over complexity",
+            "Community documentation and kits"
+          ],
+          "image": "https://picsum.photos/seed/openhardware/800/540",
+          "imageAlt": "Open-source lab hardware on bench"
+        },
+        {
+          "title": "From Forces to Function",
+          "body": "We measure and modulate mechanical cues—from single‑cell traction to tissue‑scale stresses—to understand how forces drive biology.",
+          "points": [
+            "Quantitative traction force microscopy",
+            "Hydrogel systems with tunable stiffness",
+            "Mechanotransduction readouts"
+          ],
+          "image": "https://picsum.photos/seed/forces/800/540",
+          "imageAlt": "Cell mechanics visualization"
+        }
+      ]
+    },
+    "research": {
+      "topics": [
+        {
+          "slug": "microfluidics",
+          "title": "Microfluidics",
+          "summary": "Simple, modular chips for flow control, droplet generation, and single‑cell handling. We emphasize 3D‑printed and tape‑bonded devices that cut fabrication time from days to hours.",
+          "image": "https://picsum.photos/seed/microfluidics/900/600",
+          "imageAlt": "Microfluidic channels close-up",
+          "keywords": ["Flow control", "Droplets", "Rapid prototyping"]
+        },
+        {
+          "slug": "3d-bioprinting",
+          "title": "3D Bioprinting",
+          "summary": "Hydrogel bioinks with tunable rheology for high‑viability prints. Our goal is practical tissue models, not just pretty lattices.",
+          "image": "https://picsum.photos/seed/bioprinting/900/600",
+          "imageAlt": "3D bioprinted hydrogel construct",
+          "keywords": ["Hydrogels", "Rheology", "Tissue models"]
+        },
+        {
+          "slug": "traction-force-microscopy",
+          "title": "Traction Force Microscopy",
+          "summary": "End‑to‑end TFM: gel prep, bead embedding, image registration, and force inversion with uncertainty quantification.",
+          "image": "https://picsum.photos/seed/tfm/900/600",
+          "imageAlt": "Cell traction vectors on a gel",
+          "keywords": ["Mechanobiology", "Quantitative imaging"]
+        },
+        {
+          "slug": "bead-based-elisa",
+          "title": "Bead‑Based ELISA",
+          "summary": "Microsphere assays for multiplexed detection with minimal sample volume—great for microfluidic outlets and time‑courses.",
+          "image": "https://picsum.photos/seed/elisa/900/600",
+          "imageAlt": "Fluorescent beads under microscope",
+          "keywords": ["Multiplexing", "Low volume", "Kinetics"]
+        },
+        {
+          "slug": "biomechanics",
+          "title": "Biomechanics",
+          "summary": "From single‑cell to tissue mechanics: viscoelastic measurements, strain fields, and constitutive modeling.",
+          "image": "https://picsum.photos/seed/biomechanics/900/600",
+          "imageAlt": "Diagram of tissue mechanics",
+          "keywords": ["Viscoelasticity", "Constitutive models"]
+        }
+      ],
+      "references": [
+        {
+          "title": "Open microfluidics for rapid prototyping",
+          "authors": "A. Researcher, B. Scientist",
+          "journal": "Journal of Micromechanics",
+          "year": 2024,
+          "doi": "https://doi.org/10.1000/jmm.2024.12345"
+        },
+        {
+          "title": "Hydrogel rheology for bioprinting fidelity",
+          "authors": "C. Engineer, D. Biologist",
+          "journal": "Biofabrication",
+          "year": 2023,
+          "doi": "https://doi.org/10.1000/bf.2023.67890"
+        },
+        {
+          "title": "Uncertainty in traction force microscopy",
+          "authors": "E. Analyst, F. Physicist",
+          "journal": "Biophysical Journal",
+          "year": 2022
+        }
+      ]
+    },
+    "projects": {
+      "projects": [
+        {
+          "slug": "open-pump",
+          "title": "Open Microfluidic Pump",
+          "summary": "A <$100 peristaltic pump with closed‑loop flow sensing and printable parts.",
+          "image": "https://picsum.photos/seed/pump/800/520",
+          "imageAlt": "Compact peristaltic pump prototype",
+          "tags": ["Open hardware", "Flow control"]
+        },
+        {
+          "slug": "cartilage-bioink",
+          "title": "Cartilage Bioink",
+          "summary": "Shear‑thinning, fast‑recovering hydrogel for high cell viability and shape retention.",
+          "image": "https://picsum.photos/seed/cartilage/800/520",
+          "imageAlt": "Hydrogel construct for cartilage",
+          "tags": ["Bioprinting", "Hydrogels"]
+        },
+        {
+          "slug": "tfm-toolkit",
+          "title": "TFM Toolkit",
+          "summary": "A Python toolbox for bead tracking, drift correction, and force inversion with examples.",
+          "image": "https://picsum.photos/seed/tfmtool/800/520",
+          "imageAlt": "Traction force analysis plots",
+          "tags": ["Software", "Mechanobiology"]
+        }
+      ]
+    },
+    "team": {
+      "highschool": [
+        { "name": "Alex Rivera", "role": "HS Intern", "bio": "Assists with droplet chip validation.", "photo": "https://picsum.photos/seed/hs1/600/600" }
+      ],
+      "undergrad": [
+        { "name": "Jamie Chen", "role": "Undergrad Researcher", "bio": "Bead‑based ELISA automation.", "photo": "https://picsum.photos/seed/ug1/600/600" },
+        { "name": "Priya Patel", "role": "Undergrad Researcher", "bio": "Bioprinting rheology measurements.", "photo": "https://picsum.photos/seed/ug2/600/600" }
+      ],
+      "grad": [
+        { "name": "Samir N.", "role": "PhD Student", "bio": "Computational TFM inversion.", "photo": "https://picsum.photos/seed/grad1/600/600" },
+        { "name": "Lena K.", "role": "MS Student", "bio": "Open microfluidics hardware.", "photo": "https://picsum.photos/seed/grad2/600/600" }
+      ],
+      "postdoc": [
+        { "name": "Dr. Morgan Lee", "role": "Postdoctoral Fellow", "bio": "Cell‑matrix mechanics and constitutive modeling.", "photo": "https://picsum.photos/seed/pd1/600/600" }
+      ]
+    },
+    "classesPage": {
+      "intro": "We offer hands‑on workshops and short courses. Seats are limited; register early.",
+      "courses": [
+        { "title": "Microfluidics 101", "description": "Design and prototype a basic chip in a single afternoon.", "when": "Tuesdays 2–5 PM", "level": "Beginner", "registrationLink": "#" },
+        { "title": "3D Bioprinting Bootcamp", "description": "From bioink prep to viable constructs.", "when": "Thursdays 1–4 PM", "level": "Intermediate", "registrationLink": "#" },
+        { "title": "Biomechanics Journal Club", "description": "Read, present, and discuss recent papers.", "when": "Fridays 12–1 PM", "level": "All levels", "registrationLink": "#" }
+      ]
+    }
+  }
+}
