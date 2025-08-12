@@ -1,7 +1,8 @@
-/* McGheeLab SPA – minimal, dependency-free
+/* McGheeLab SPA – updated for persistent banner + universal quick-links subnav
    - Top (banner + hero) never reloads
    - Body swaps based on #/route
    - Content comes from content.json
+   - Subnav (quick links) appears on ALL pages; swipeable on small screens
 */
 
 (() => {
@@ -18,7 +19,6 @@
   // ---------- Init ----------
   document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('year').textContent = new Date().getFullYear();
-
     setupMenu();
     await loadData();
 
@@ -27,7 +27,7 @@
     document.getElementById('footerMission').textContent = state.data.site.mission;
     document.getElementById('footerContact').innerHTML = formatContact(state.data.site.contact);
 
-    // Compute banner height for sticky subnav offsets
+    // Compute banner height for sticky offsets
     updateBannerHeight();
     window.addEventListener('resize', debounce(updateBannerHeight, 150));
 
@@ -58,7 +58,6 @@
     const hash = window.location.hash || '#/mission';
     const [, route] = hash.split('/'); // route after "#/"
     const page = (route || 'mission').toLowerCase();
-
     render(page);
     setActiveLink(page);
   }
@@ -74,7 +73,6 @@
     state.observers.forEach(o => o.disconnect());
     state.observers = [];
 
-    // Build view
     let view;
     switch(page){
       case 'mission':   view = renderMission(); break;
@@ -92,7 +90,7 @@
     // Focus main for accessibility
     appEl.focus({ preventScroll: true });
 
-    // Scroll to just below hero on page change
+    // Scroll to just below the hero on page change
     window.scrollTo({ top: headerBottom(), behavior: 'smooth' });
 
     // Observe reveal elements + lazy images
@@ -105,9 +103,17 @@
     const { missionPage } = state.data.pages;
     const wrap = sectionEl();
 
-    if (missionPage?.sections?.length){
-      missionPage.sections.forEach(sec => {
+    // Build subnav from mission sections
+    const sections = missionPage?.sections || [];
+    const links = sections.map(sec => ({ id: slugify(sec.slug || sec.title), label: sec.title }));
+    wrap.appendChild(buildSubnav(links));
+
+    // Sections
+    if (sections.length){
+      sections.forEach(sec => {
+        const slug = slugify(sec.slug || sec.title);
         const s = div('section card reveal');
+        s.id = slug;
         s.innerHTML = `
           <div class="max-w">
             <h2>${esc(sec.title)}</h2>
@@ -133,24 +139,14 @@
     const { topics = [], references = [] } = state.data.pages.research || {};
     const wrap = sectionEl();
 
-    // Sticky subnav for quick-jump
-    const subnav = div('subnav reveal');
-    subnav.innerHTML = `
-      <ul>
-        ${topics.map(t=>`<li><a href="#" data-scroll="${esc(t.slug)}">${esc(t.title)}</a></li>`).join('')}
-      </ul>
-    `;
-    wrap.appendChild(subnav);
+    // Subnav (topics + references)
+    const links = [
+      ...topics.map(t => ({ id: t.slug, label: t.title })),
+      ...(references.length ? [{ id: 'references', label: 'References' }] : [])
+    ];
+    wrap.appendChild(buildSubnav(links));
 
-    // Attach scroll handlers
-    subnav.querySelectorAll('a[data-scroll]').forEach(a=>{
-      a.addEventListener('click', (e)=>{
-        e.preventDefault();
-        const id = a.getAttribute('data-scroll');
-        scrollToSection(id);
-      });
-    });
-
+    // Topic cards
     topics.forEach(t=>{
       const art = div('section card reveal');
       art.id = t.slug;
@@ -171,6 +167,7 @@
 
     // References block
     const refs = div('section card reveal');
+    refs.id = 'references';
     refs.innerHTML = `
       <div class="max-w">
         <h2>Selected References</h2>
@@ -191,12 +188,16 @@
     const { projects = [] } = state.data.pages.projects || {};
     const wrap = sectionEl();
 
+    // Subnav built from project list
+    const links = projects.map(p => ({ id: p.slug, label: p.title }));
+    wrap.appendChild(buildSubnav(links));
+
     const grid = div('max-w grid grid-fit-250');
     projects.forEach(p=>{
-      const item = div('card class-item reveal');
+      const item = div('card class-item reveal project-card');
       item.id = p.slug;
       item.innerHTML = `
-        ${imageHTML(p.image, p.imageAlt || p.title)}
+        <div class="thumb">${imageHTML(p.image, p.imageAlt || p.title)}</div>
         <h3>${esc(p.title)}</h3>
         <p>${esc(p.summary)}</p>
         ${p.tags?.length ? `<p>${p.tags.map(t=>`<span class="badge">${esc(t)}</span>`).join(' ')}</p>` : ''}
@@ -213,10 +214,22 @@
     const wrap = sectionEl();
 
     const order = ['highschool','undergrad','grad','postdoc'];
+
+    // Subnav from categories
+    const links = order
+      .filter(group => (team?.[group] || []).length)
+      .map(group => ({ id: `team-${group}`, label: labelGroup(group) }));
+    wrap.appendChild(buildSubnav(links));
+
+    // Sections per category
     order.forEach(group=>{
       const people = team?.[group] || [];
+      if (!people.length) return;
+
       const section = div('section reveal');
+      section.id = `team-${group}`;
       section.innerHTML = `<div class="max-w"><h2>${labelGroup(group)}</h2></div>`;
+
       const grid = div('max-w grid grid-fit-250');
       people.forEach(person=>{
         const card = div('card person');
@@ -228,6 +241,7 @@
         `;
         grid.appendChild(card);
       });
+
       section.appendChild(grid);
       wrap.appendChild(section);
     });
@@ -239,15 +253,25 @@
     const { classesPage = {} } = state.data.pages;
     const wrap = sectionEl();
 
+    const courses = classesPage.courses || [];
+    const links = [
+      ...(classesPage.intro ? [{ id: 'classes-intro', label: 'Overview' }] : []),
+      ...courses.map(c => ({ id: slugify(c.title), label: c.title }))
+    ];
+    wrap.appendChild(buildSubnav(links));
+
     if (classesPage?.intro){
       const intro = div('section card reveal');
+      intro.id = 'classes-intro';
       intro.innerHTML = `<div class="max-w"><h2>Classes</h2><p>${esc(classesPage.intro)}</p></div>`;
       wrap.appendChild(intro);
     }
 
     const grid = div('max-w grid grid-fit-250');
-    (classesPage.courses || []).forEach(c=>{
+    courses.forEach(c=>{
+      const id = slugify(c.title);
       const card = div('card class-item reveal');
+      card.id = id;
       card.innerHTML = `
         <h3>${esc(c.title)}</h3>
         <p>${esc(c.description)}</p>
@@ -265,8 +289,16 @@
     const { site } = state.data;
     const wrap = sectionEl();
 
+    // Subnav for quick jump
+    wrap.appendChild(buildSubnav([
+      { id: 'contact-form', label: 'Form' },
+      { id: 'contact-info', label: 'Info' }
+    ]));
+
     const block = div('max-w grid');
+
     const formBox = div('card class-item reveal');
+    formBox.id = 'contact-form';
     formBox.innerHTML = `
       <h2>Contact Us</h2>
       <form id="contactForm" novalidate>
@@ -285,6 +317,7 @@
     `;
 
     const infoBox = div('card class-item reveal');
+    infoBox.id = 'contact-info';
     infoBox.innerHTML = `
       <h2>Info</h2>
       ${formatContact(site.contact)}
@@ -314,6 +347,33 @@
     const wrap = sectionEl();
     wrap.appendChild(fallbackMessage('Page not found.'));
     return wrap;
+  }
+
+  // ---------- Subnav (quick links) ----------
+  function buildSubnav(items){
+    const subnav = document.createElement('nav');
+    subnav.className = 'subnav reveal';
+    subnav.setAttribute('aria-label', 'Quick links');
+
+    const container = document.createElement('div');
+    container.className = 'max-w';
+
+    const ul = document.createElement('ul');
+    ul.className = 'track';
+    ul.innerHTML = items.map(i => `<li><a href="#${esc(i.id)}" data-scroll="${esc(i.id)}">${esc(i.label)}</a></li>`).join('');
+
+    // click -> smooth scroll with offset for fixed banner + subnav height
+    ul.addEventListener('click', (e)=>{
+      const a = e.target.closest('a[data-scroll]');
+      if(!a) return;
+      e.preventDefault();
+      scrollToSection(a.getAttribute('data-scroll'));
+    });
+
+    enableDragScroll(ul); // mouse drag on desktop; touch scroll on mobile
+    container.appendChild(ul);
+    subnav.appendChild(container);
+    return subnav;
   }
 
   // ---------- Behaviors ----------
@@ -371,12 +431,29 @@
     state.observers.push(io);
   }
 
+  function enableDragScroll(el){
+    let isDown = false, startX = 0, startLeft = 0, id = 0;
+    el.addEventListener('pointerdown', e => {
+      isDown = true; startX = e.clientX; startLeft = el.scrollLeft;
+      id = e.pointerId; el.setPointerCapture(id);
+      el.style.cursor = 'grabbing';
+    });
+    el.addEventListener('pointermove', e => {
+      if(!isDown) return;
+      const dx = e.clientX - startX;
+      el.scrollLeft = startLeft - dx;
+    });
+    const end = () => { isDown = false; if(id){ try{ el.releasePointerCapture(id); }catch{} } el.style.cursor=''; };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointerleave', end);
+  }
+
   function headerBottom(){
-    // Where the page body should start after route changes
+    // Where the page body should start after route changes (just below hero)
     const hero = document.querySelector('.hero');
     const rect = hero.getBoundingClientRect();
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    return scrollTop + rect.top + 1; // +1 to move past the boundary
+    return scrollTop + rect.top + 1;
   }
 
   function updateBannerHeight(){
@@ -388,7 +465,10 @@
   function scrollToSection(id){
     const el = document.getElementById(id);
     if(!el) return;
-    const y = el.getBoundingClientRect().top + window.pageYOffset - (state.bannerHeight + 12);
+    const subnav = document.querySelector('.subnav');
+    const subnavH = subnav ? subnav.getBoundingClientRect().height : 0;
+    const offset = state.bannerHeight + subnavH + 8;
+    const y = el.getBoundingClientRect().top + window.pageYOffset - offset;
     window.scrollTo({ top: y, behavior: 'smooth' });
   }
 
@@ -398,9 +478,7 @@
   function esc(str){ return (str ?? '').toString().replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s])); }
   function imageHTML(src, alt){
     if(!src) return '<div></div>';
-    return `
-      <img data-src="${esc(src)}" alt="${esc(alt || '')}" loading="lazy" />
-    `;
+    return `<img data-src="${esc(src)}" alt="${esc(alt || '')}" loading="lazy" />`;
   }
   function fallbackMessage(msg){
     const box = div('card class-item reveal'); box.innerHTML = `<div class="max-w"><p>${esc(msg)}</p></div>`; return box;
@@ -409,6 +487,7 @@
     const map = { highschool:'High School', undergrad:'Undergraduate', grad:'Graduate', postdoc:'Postdoctoral' };
     return map[g] || g;
   }
+  function slugify(s=''){ return s.toString().toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
   function formatContact(c){
     const lines = [
       c.address ? esc(c.address) : '',
