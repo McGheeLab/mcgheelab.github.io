@@ -153,22 +153,20 @@
 }
 
 .Navigation {
-    display: flex;
-    justify-content: space-between;
-    position: relative;
+    padding: 1vw 1vh;
+    background-color: var(--color-background);
 }
 
 .Navigation .logo {
-    flex-grow: 2;
-    justify-content: flex-start;
-    padding-left: 5%;
-    width: 1%;
+    flex-grow: 1;
+    padding-left: 2%;
+    width: 50vw;
 }
 
 .Navigation .links {
     flex-grow: 1.5;
-    justify-content: flex-end;
-    align-items: center; 
+    padding-right: 2%;
+    width: 50vw;
 }
 
 /* General parameters like color and special properties */
