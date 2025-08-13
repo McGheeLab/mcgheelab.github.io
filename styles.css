@@ -5,8 +5,11 @@
   --surface-2: #1a2030;
   --text: #eef2f7;
   --muted: #a8b3c7;
-  --accent: #5bd1b9;
+  --accent: #5baed1;
   --link: #7cc4ff;
+  --loader-text-color: #f6e9fe;
+  --loader-dot-color: #ee0c0c;
+  --loader-bg: #100319;
 
   --radius: 12px;
   --shadow: 0 10px 30px rgba(0,0,0,.25);
@@ -48,8 +51,111 @@ a:hover{ text-decoration: underline; }
   border-bottom: 1px solid rgba(255,255,255,.08);
   padding-inline: clamp(12px, 3vw, 24px);
 }
-.logo-svg{ height: 44px; width: auto; display: block; color: var(--text); }
+.logo-svg{ height: 40px; max-width: 20vw; width: auto; display: block; color: var(--text); }
 .logo{ display: inline-flex; align-items: center; }
+
+html {
+    font-family: 'Figtree', sans-serif;
+    line-height: 1.5;
+}
+
+svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Default styles for larger screens */
+svg text {
+  font-size: 3vw;
+  max-height: 1vw;
+  stroke-width: 1;
+  letter-spacing: -2px;
+}
+
+/* For medium screens */
+@media (max-width: 992px) {
+  svg text {
+    font-size: 4vw;
+    max-height: 1.5vw;
+    stroke-width: 0.9;
+    letter-spacing: -1.5px;
+  }
+}
+
+/* For small screens */
+@media (max-width: 600px) {
+  svg text {
+    font-size: 10vw;
+    max-height: 2vw;
+    stroke-width: 0.8;
+    letter-spacing: -1px;
+  }
+}
+
+svg text.text-body {
+    stroke: var(--loader-text-color);
+    animation: 4s animate-stroke alternate ease-in-out infinite;
+}
+
+svg text.dot {
+    fill: var(--loader-dot-color);
+    stroke: var(--loader-dot-color);
+    animation: 4s animate-dot alternate ease-in-out infinite;
+}
+
+@keyframes animate-stroke {
+    0% {
+        fill: transparent;
+        stroke: var(--loader-text-color);
+        stroke-width: 1;
+        stroke-dasharray: 0 32%;
+        stroke-dashoffset: 25;
+    }
+    50% {
+        fill: transparent;
+        stroke: var(--loader-text-color);
+        stroke-width: 3;
+        stroke-dasharray: 50% 0;
+        stroke-dashoffset: 0;
+    }
+    80%,
+    100% {
+        fill: var(--loader-text-color);
+        stroke: 20;
+        stroke-width: 0;
+        stroke-dasharray: 32 0%;
+        stroke-dashoffset: -25%;
+    }
+
+}
+
+@keyframes animate-dot {
+    0%,
+    50% {
+        fill: var(--loader-dot-color);
+        opacity: 0; 
+    }
+    80%,
+    100% {
+        fill: var(--loader-dot-color);
+        opacity: 1;
+    }
+    
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .hamburger{
   width: 44px; height: 44px; border: 0; border-radius: 10px;

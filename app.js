@@ -1,120 +1,63 @@
 /* =====================================================================================
-   McGheeLab SPA (Single-Page App)
-   -----------------------------------------------------------------------------
-   What this file does:
-
-   1) SPA ROUTER
-      - Listens to location hash (#/mission, #/research, etc.) and swaps only the
-        page BODY while keeping the top banner + hero + footer persistent.
-
-   2) DATA LOADING
-      - Fetches ALL page content from content.json.
-      - We keep backwards compatibility with your existing JSON, and ALSO
-        support optional "story" arrays so you can build expandable “stories”
-        (multiple image + text blocks) inside Research topics and Projects.
-
-        Example JSON extensions (optional; keep your old fields too):
-        {
-          "pages": {
-            "research": {
-              "topics": [
-                {
-                  "slug": "microfluidics",
-                  "title": "Microfluidics",
-                  "summary": "Short overview...",
-                  "image": "https://...",
-                  "story": [
-                    { "image": "https://...", "imageAlt": "foo", "text": "detail paragraph 1" },
-                    { "image": "https://...", "imageAlt": "bar", "text": "detail paragraph 2" }
-                  ]
-                }
-              ]
-            },
-            "projects": {
-              "projects": [
-                {
-                  "slug": "open-pump",
-                  "title": "Open Microfluidic Pump",
-                  "summary": "Short overview...",
-                  "image": "https://...",
-                  "story": [
-                    { "image": "https://...", "imageAlt": "pump v1", "text": "design notes" },
-                    { "image": "https://...", "imageAlt": "pump v2", "text": "testing notes" }
-                  ]
-                }
-              ]
-            }
-          }
-        }
-
-   3) SUBNAV (Quick Links) — Desktop & Mobile
-      - The chip row is swipeable on touch/pen (phones/tablets), but on desktop
-        we DO NOT attach drag handlers at all, so mouse clicks always work.
-      - Clicking a chip scrolls to the corresponding section and places it at
-        the *center of the visible page*, below the sticky header + subnav.
-      - Scrollspy highlights the chip whose section is closest to the visible
-        center line and auto-centers that chip in the row.
-
-   4) MISSION HIGHLIGHT
-      - In the hero line, the phrase "in vitro models" and the trailing period
-        are colored pink (via a span with .hero-highlight).
-
-   5) LAZY IMAGES + REVEAL ON SCROLL
-      - Images load as they enter the viewport; sections fade in gracefully.
-
-   6) ACCESSIBILITY
-      - Keyboard support for quick links (Enter/Space).
-      - Proper aria-current on active chips.
-      - Focus management on route changes.
-
-   NOTES:
-   - This file is intentionally *heavily commented* as requested.
-   - You do NOT need to change your CSS for this to work (animations are basic).
-   - If you want animated expand/collapse later, we can add a few CSS rules.
-
+   McGheeLab SPA (robust edition)
+   - Persistent top (banner + hero) never reloads
+   - Body swaps by hash router (#/mission, #/research, #/projects, #/team, #/classes, #/contact)
+   - Content loaded from a simplified content.json (with backward compatibility)
+   - Mobile: chip subnav swipeable via touch/pen only (mouse clicks never blocked)
+   - Clicking a chip scrolls its section to the MIDDLE of the visible area
+   - Scrollspy highlights the section nearest the visible center line
+   - Research/Projects "stories": expandable multi-block details (images + text)
+   - Strong input normalization so minor JSON mistakes don't crash the site
    ===================================================================================== */
 
 (() => {
-  // ---- DOM references to persistent containers
-  const appEl     = document.getElementById('app');        // dynamic main content
-  const menuBtn   = document.getElementById('menuBtn');    // hamburger button
-  const navDrawer = document.getElementById('site-nav');   // slide-down nav drawer
+  // ---- Persistent containers
+  const appEl     = document.getElementById('app');
+  const menuBtn   = document.getElementById('menuBtn');
+  const navDrawer = document.getElementById('site-nav');
 
-  // ---- Simple app state
+  // ---- State
   const state = {
-    data: null,        // content.json after load
-    observers: [],     // active IntersectionObservers (reveal, lazy imgs)
-    cleanups: [],      // per-page event listeners we must remove on page swap
-    bannerHeight: 64   // computed sticky top height (updated on resize)
+    data: null,              // normalized content
+    observers: [],           // IntersectionObservers to clean up
+    cleanups: [],            // event unbinders per page
+    bannerHeight: 64,        // computed sticky top height
+    idCounters: Object.create(null) // for unique ids per page
   };
 
   /* ===========================
      BOOTSTRAP
      =========================== */
   document.addEventListener('DOMContentLoaded', async () => {
-    // Footer year stamp
-    document.getElementById('year').textContent = new Date().getFullYear();
+    // Year in footer
+    const yearEl = document.getElementById('year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-    // Wire up the persistent hamburger/drawer
+    // Hamburger
     setupMenu();
 
-    // Load content.json (with a safe fallback)
-    await loadData();
+    // Load + normalize content
+    const raw = await safeFetchJSON('content.json');
+    state.data = normalizeData(raw);
 
-    // Hero + footer text from JSON (mission pinkified in hero)
-    applyMissionText(); // adds pink span to phrase + period
-    document.getElementById('footerMission').textContent = state.data.site.mission;
-    document.getElementById('footerContact').innerHTML = formatContact(state.data.site.contact);
+    // Hero mission (pink phrase + period)
+    applyMissionText(state.data.site.mission);
 
-    // Compute banner height for sticky math and keep it fresh on resize
+    // Footer
+    const fm = document.getElementById('footerMission');
+    const fc = document.getElementById('footerContact');
+    if (fm) fm.textContent = state.data.site.mission || '';
+    if (fc) fc.innerHTML = formatContact(state.data.site.contact);
+
+    // Sticky offsets
     updateBannerHeight();
     window.addEventListener('resize', debounce(updateBannerHeight, 150));
 
-    // Basic router: swap the body when the hash route changes
+    // Router
     window.addEventListener('hashchange', onRouteChange);
-    onRouteChange(); // render initial route
+    onRouteChange();
 
-    // Respect reduced motion users by stopping the hero video
+    // Reduced-motion: stop hero video
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       const v = document.getElementById('heroVideo');
       if (v) { v.pause(); v.removeAttribute('src'); v.load(); }
@@ -122,35 +65,139 @@
   });
 
   /* ===========================
-     DATA LOADING
+     DATA LOADING / NORMALIZATION
      =========================== */
-  async function loadData(){
+
+  async function safeFetchJSON(url){
     try{
-      const res = await fetch('content.json');
-      state.data = await res.json();
-    }catch{
-      // Fallback if JSON isn't reachable — keep the app usable
-      state.data = {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    }catch(e){
+      console.warn('Failed to fetch content.json, using fallback:', e?.message || e);
+      // Minimal safe fallback to keep site usable
+      return {
         site: {
-          mission: 'We build in vitro models to study the mechanisms driving metastasis.',
-          contact: { address: '123 Science Dr, Tucson, AZ 85701', email: 'info@mcgheelab.org', phone: '(520) 555-0123' }
+          name: "McGheeLab",
+          mission: "We build in vitro models to study the mechanisms driving metastasis.",
+          contact: { address: "", email: "", phone: "" }
         },
-        pages: {}
+        mission: [],
+        research: { topics: [], references: [] },
+        projects: [],
+        team: { highschool: [], undergrad: [], grad: [], postdoc: [] },
+        classes: { intro: "", courses: [] }
       };
     }
   }
+
+  // Accepts either the new simplified schema or older "pages.*" variants.
+  function normalizeData(raw){
+    const safe = (v, def) => (v === undefined || v === null ? def : v);
+
+    // Site
+    const site = safe(raw.site, {});
+    site.name    = safe(site.name, 'McGheeLab');
+    site.mission = safe(site.mission, 'We build in vitro models to study the mechanisms driving metastasis.');
+    site.contact = safe(site.contact, { address: '', email: '', phone: '' });
+
+    // New simple shape, with fallback to old:
+    const mission = toArray(raw.mission?.length ? raw.mission : raw?.pages?.missionPage?.sections);
+
+    const research = (() => {
+      const r = raw.research || raw?.pages?.research || {};
+      return {
+        topics: toArray(r.topics).map(normalizeTopicOrProject),
+        references: toArray(r.references).map((ref) => ({
+          title:  str(ref?.title),
+          authors:str(ref?.authors),
+          journal:str(ref?.journal),
+          year:   str(ref?.year),
+          doi:    str(ref?.doi)
+        }))
+      };
+    })();
+
+    const projects = toArray((raw.projects && !raw.projects.projects) ? raw.projects : raw?.pages?.projects?.projects)
+      .map(normalizeTopicOrProject);
+
+    const teamSrc = raw.team || raw?.pages?.team || {};
+    const team = {
+      highschool: toArray(teamSrc.highschool).map(normalizePerson),
+      undergrad:  toArray(teamSrc.undergrad).map(normalizePerson),
+      grad:       toArray(teamSrc.grad).map(normalizePerson),
+      postdoc:    toArray(teamSrc.postdoc).map(normalizePerson)
+    };
+
+    const classesSrc = raw.classes || raw?.pages?.classesPage || {};
+    const classes = {
+      intro:   str(classesSrc.intro),
+      courses: toArray(classesSrc.courses).map(c => ({
+        title: str(c?.title),
+        description: str(c?.description),
+        level: str(c?.level),
+        when:  str(c?.when),
+        registrationLink: str(c?.registrationLink)
+      }))
+    };
+
+    return { site, mission, research, projects, team, classes };
+  }
+
+  // Normalize Research Topic or Project item
+  function normalizeTopicOrProject(item){
+    const title = str(item?.title);
+    const slug  = slugify(item?.slug || title || 'section');
+
+    // Single image or array — turn into a single "lead" image
+    const image = item?.image || (isNonEmptyArray(item?.images) ? item.images[0]?.src : '');
+    const imageAlt = item?.imageAlt || (isNonEmptyArray(item?.images) ? item.images[0]?.alt : '');
+
+    // Story can be "story" (preferred) or "details" (compat) and can contain strings or objects
+    const storyBlocks = toArray(item?.story?.length ? item.story : item?.details)
+      .map(block => {
+        if (typeof block === 'string') return { text: block, image: '', imageAlt: '' };
+        return {
+          text: str(block?.text || block?.content),
+          image: str(block?.image || block?.src),
+          imageAlt: str(block?.imageAlt || block?.alt)
+        };
+      });
+
+    return {
+      slug,
+      title,
+      summary: str(item?.summary),
+      image: str(image),
+      imageAlt: str(imageAlt || title),
+      keywords: toArray(item?.keywords).map(str),
+      tags: toArray(item?.tags).map(str),
+      story: storyBlocks
+    };
+  }
+
+  function normalizePerson(p){
+    return {
+      name: str(p?.name),
+      role: str(p?.role),
+      photo: str(p?.photo),
+      bio: str(p?.bio)
+    };
+  }
+
+  const str = (v) => (v === undefined || v === null ? '' : String(v));
+  const toArray = (v) => Array.isArray(v) ? v : (v ? [v] : []);
+  const isNonEmptyArray = (v) => Array.isArray(v) && v.length > 0;
 
   /* ===========================
      ROUTER
      =========================== */
   function onRouteChange(){
-    // Route is everything after "#/", default to "mission"
     const hash = window.location.hash || '#/mission';
     const [, route] = hash.split('/');
     const page = (route || 'mission').toLowerCase();
-
     render(page);
-    setActiveTopNav(page); // highlight the item in the slide-down drawer
+    setActiveTopNav(page);
   }
 
   function setActiveTopNav(page){
@@ -163,121 +210,107 @@
      PAGE RENDERER
      =========================== */
   async function render(page){
-    // 1) Clean up prior page observers and event listeners
+    // Clean previous page observers/listeners
     state.observers.forEach(o => o.disconnect()); state.observers = [];
     state.cleanups.forEach(fn => { try{ fn(); }catch{} }); state.cleanups = [];
+    state.idCounters = Object.create(null); // reset id counters per page
 
-    // 2) Build the requested view
     let view;
-    switch(page){
-      case 'mission':   view = renderMission();  break;
-      case 'research':  view = renderResearch(); break;
-      case 'projects':  view = renderProjects(); break;
-      case 'team':      view = renderTeam();     break;
-      case 'classes':   view = renderClasses();  break;
-      case 'contact':   view = renderContact();  break;
-      default:          view = renderNotFound();
+    switch (page){
+      case 'mission':  view = renderMission();  break;
+      case 'research': view = renderResearch(); break;
+      case 'projects': view = renderProjects(); break;
+      case 'team':     view = renderTeam();     break;
+      case 'classes':  view = renderClasses();  break;
+      case 'contact':  view = renderContact();  break;
+      default:         view = renderNotFound();
     }
 
-    // 3) Swap the DOM
     appEl.innerHTML = '';
     appEl.appendChild(view);
-
-    // Accessibility: move focus to <main>
     appEl.focus({ preventScroll: true });
 
-    // 4) Wire the page-specific subnav (chips). IMPORTANT:
-    //    - We add swipe/drag ONLY for touch/pen. No drag handlers on mouse.
-    //    - We delegate clicks and ALWAYS let desktop clicks fire.
+    // Wire subnav (desktop clicks + touch/pen swipe)
     wireUpSubnav(view);
 
-    // 5) On route change, scroll the window so the top of body is just below the hero
+    // Start the body just under hero on route change
     window.scrollTo({ top: headerBottom(), behavior: 'smooth' });
 
-    // 6) Turn on reveal + lazy images for this view
+    // Reveal + Lazy images
     enableReveal();
     enableLazyImages();
   }
 
   /* ===========================
-     VIEW: Mission
+     VIEWS
      =========================== */
   function renderMission(){
-    const { missionPage } = state.data.pages;
     const wrap = sectionEl();
+    const sections = state.data.mission;
 
-    // Build quick links from the per-section titles (if any)
-    const sections = missionPage?.sections || [];
-    const links = sections.map(sec => ({ id: slugify(sec.slug || sec.title), label: sec.title }));
+    // Subnav from mission sections
+    const links = sections.map(s => ({ id: uniqueId(slugify(s.slug || s.title || 'section')), label: s.title || 'Section' }));
     wrap.appendChild(buildSubnav(links));
 
-    // Render sections (existing layout kept intact)
-    if (sections.length){
-      sections.forEach(sec => {
-        const slug = slugify(sec.slug || sec.title);
-        const s = div('section card reveal'); s.id = slug;
-        s.innerHTML = `
-          <div class="max-w">
-            <h2>${esc(sec.title)}</h2>
-            <div class="media">
-              <div>
-                <p>${esc(sec.body)}</p>
-                ${sec.points ? `<ul>${sec.points.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>` : ''}
-              </div>
-              ${imageHTML(sec.image, sec.imageAlt || sec.title)}
+    // Render cards
+    sections.forEach((sec, i) => {
+      const id = links[i].id;
+      const card = div('section card reveal'); card.id = id;
+
+      card.innerHTML = `
+        <div class="max-w">
+          <h2>${esc(sec.title || 'Untitled')}</h2>
+          <div class="media">
+            <div>
+              ${sec.body ? `<p>${esc(sec.body)}</p>` : ''}
+              ${isNonEmptyArray(sec.points) ? `<ul>${sec.points.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>` : ''}
             </div>
+            ${imageHTML(sec.image, sec.imageAlt || sec.title || 'image')}
           </div>
-        `;
-        wrap.appendChild(s);
-      });
-    } else {
-      wrap.appendChild(infoBox('Update missionPage.sections in content.json'));
+        </div>
+      `;
+      wrap.appendChild(card);
+    });
+
+    if (!sections.length){
+      wrap.appendChild(infoBox('Add mission sections in content.json → "mission": [ ... ]'));
     }
 
     return wrap;
   }
 
-  /* ===========================
-     VIEW: Research
-     - Each topic is shown in the same media layout you liked.
-     - NEW: If a topic has a "story" array, we show a collapsed "More details"
-            panel with multiple image + text blocks that the user can expand/collapse.
-     =========================== */
   function renderResearch(){
-    const { topics = [], references = [] } = state.data.pages.research || {};
+    const { topics = [], references = [] } = state.data.research || {};
     const wrap = sectionEl();
 
-    // Build subnav chips for topics + references anchor
     const links = [
-      ...topics.map(t => ({ id: t.slug, label: t.title })),
-      ...(references.length ? [{ id: 'references', label: 'References' }] : [])
+      ...topics.map(t => ({ id: uniqueId(t.slug), label: t.title || 'Topic' })),
+      ...(references.length ? [{ id: uniqueId('references'), label: 'References' }] : [])
     ];
     wrap.appendChild(buildSubnav(links));
 
-    // Topics
-    topics.forEach(t=>{
-      const art = div('section card reveal'); art.id = t.slug;
+    topics.forEach((t, i)=>{
+      const id = links[i].id;
+      const art = div('section card reveal'); art.id = id;
 
-      // Build optional expandable "story" (multiple blocks)
       const storyHTML = buildStoryHTML(t.story);
 
       art.innerHTML = `
         <div class="max-w">
-          <h2>${esc(t.title)}</h2>
+          <h2>${esc(t.title || 'Untitled')}</h2>
           <div class="media">
             <div>
-              <p>${esc(t.summary)}</p>
-              ${t.keywords?.length ? `<p>${t.keywords.map(k=>`<span class="badge">${esc(k)}</span>`).join(' ')}</p>` : ''}
-              ${storyHTML ? expandableHTML() : ''}  <!-- toggle button + empty details slot -->
+              ${t.summary ? `<p>${esc(t.summary)}</p>` : ''}
+              ${isNonEmptyArray(t.keywords) ? `<p>${t.keywords.map(k=>`<span class="badge">${esc(k)}</span>`).join(' ')}</p>` : ''}
+              ${storyHTML ? expandableHTML() : ''}
             </div>
-            ${imageHTML(t.image, t.imageAlt || t.title)}
+            ${imageHTML(t.image, t.imageAlt || t.title || 'image')}
           </div>
-
           ${storyHTML ? `<div class="expandable-details" hidden>${storyHTML}</div>` : ''}
         </div>
       `;
 
-      // If there is an expandable section, wire the toggle
+      // Wire expand/collapse if story exists
       const btn = art.querySelector('.expand-toggle');
       if (btn){
         const details = art.querySelector('.expandable-details');
@@ -287,91 +320,100 @@
       wrap.appendChild(art);
     });
 
-    // References list (unchanged)
-    const refs = div('section card reveal'); refs.id = 'references';
-    refs.innerHTML = `
-      <div class="max-w">
-        <h2>Selected References</h2>
-        ${references?.length ? `<ol>${references.map(r => `
-          <li>
-            <strong>${esc(r.title)}</strong><br/>
-            <span>${esc(r.authors || '')}</span> <em>${esc(r.journal || '')}</em> ${r.year ? `(${esc(r.year)})` : ''}${r.doi ? ` — <a href="${esc(r.doi)}" target="_blank" rel="noopener">DOI</a>` : ''}
-          </li>
-        `).join('')}</ol>` : '<p>No references yet.</p>'}
-      </div>
-    `;
-    wrap.appendChild(refs);
+    // References
+    if (references.length){
+      const refs = div('section card reveal'); refs.id = links.at(-1).id;
+      refs.innerHTML = `
+        <div class="max-w">
+          <h2>Selected References</h2>
+          <ol>
+            ${references.map(r => `
+              <li>
+                <strong>${esc(r.title)}</strong>${r.authors ? `<br/><span>${esc(r.authors)}</span>` : ''}
+                ${r.journal ? ` <em>${esc(r.journal)}</em>` : ''}${r.year ? ` (${esc(r.year)})` : ''}
+                ${r.doi ? ` — <a href="${esc(r.doi)}" target="_blank" rel="noopener">DOI</a>` : ''}
+              </li>
+            `).join('')}
+          </ol>
+        </div>
+      `;
+      wrap.appendChild(refs);
+    }
+
+    if (!topics.length && !references.length){
+      wrap.appendChild(infoBox('Add research topics in content.json → "research.topics": [ ... ]'));
+    }
 
     return wrap;
   }
 
-  /* ===========================
-     VIEW: Projects
-     - Uses cards in a grid (as before).
-     - NEW: If a project has a "story" array, add an expandable details panel.
-     =========================== */
   function renderProjects(){
-    const { projects = [] } = state.data.pages.projects || {};
+    const projects = state.data.projects || [];
     const wrap = sectionEl();
 
-    // Quick-links from project titles
-    const links = projects.map(p => ({ id: p.slug, label: p.title }));
+    const links = projects.map(p => ({ id: uniqueId(p.slug), label: p.title || 'Project' }));
     wrap.appendChild(buildSubnav(links));
 
-    // Grid of cards
     const grid = div('max-w grid grid-fit-250');
-    projects.forEach(p=>{
+    projects.forEach((p, i)=>{
+      const id = links[i].id;
       const storyHTML = buildStoryHTML(p.story);
+      const item = div('card class-item reveal project-card'); item.id = id;
 
-      const item = div('card class-item reveal project-card'); item.id = p.slug;
       item.innerHTML = `
-        <div class="thumb">${imageHTML(p.image, p.imageAlt || p.title)}</div>
-        <h3>${esc(p.title)}</h3>
-        <p>${esc(p.summary)}</p>
-        ${p.tags?.length ? `<p>${p.tags.map(t=>`<span class="badge">${esc(t)}</span>`).join(' ')}</p>` : ''}
+        <div class="thumb">${imageHTML(p.image, p.imageAlt || p.title || 'image')}</div>
+        <h3>${esc(p.title || 'Untitled')}</h3>
+        ${p.summary ? `<p>${esc(p.summary)}</p>` : ''}
+        ${isNonEmptyArray(p.tags) ? `<p>${p.tags.map(t=>`<span class="badge">${esc(t)}</span>`).join(' ')}</p>` : ''}
         ${storyHTML ? `${expandableHTML()}<div class="expandable-details" hidden>${storyHTML}</div>` : ''}
       `;
       if (storyHTML){
         const btn = item.querySelector('.expand-toggle');
-        const details = item.querySelector('.expandable-details');
-        wireExpandable(btn, details);
+        const det = item.querySelector('.expandable-details');
+        wireExpandable(btn, det);
       }
 
       grid.appendChild(item);
     });
 
+    if (!projects.length){
+      grid.appendChild(infoBox('Add projects in content.json → "projects": [ ... ]'));
+    }
+
     wrap.appendChild(grid);
     return wrap;
   }
 
-  /* ===========================
-     VIEW: Team
-     =========================== */
   function renderTeam(){
-    const { team = {} } = state.data.pages;
+    const team = state.data.team || {};
     const wrap = sectionEl();
 
-    const order = ['highschool','undergrad','grad','postdoc'];
-    const links = order
-      .filter(group => (team?.[group] || []).length)
-      .map(group => ({ id: `team-${group}`, label: labelGroup(group) }));
-    wrap.appendChild(buildSubnav(links));
+    const categories = [
+      ['postdoc',    'Postdoctoral'],
+      ['grad',       'Graduate'],
+      ['undergrad',  'Undergraduate'],
+      ['highschool', 'High School']
 
-    order.forEach(group=>{
-      const people = team?.[group] || [];
-      if (!people.length) return;
+    ];
 
-      const section = div('section reveal'); section.id = `team-${group}`;
-      section.innerHTML = `<div class="max-w"><h2>${labelGroup(group)}</h2></div>`;
+    const existing = categories.filter(([k]) => isNonEmptyArray(team[k]));
+    const links = existing.map(([k, label]) => ({ id: uniqueId('team-' + k), label }));
+    if (links.length) wrap.appendChild(buildSubnav(links));
+
+    existing.forEach(([k, label], i)=>{
+      const id = links[i].id;
+      const people = toArray(team[k]);
+      const section = div('section reveal'); section.id = id;
+      section.innerHTML = `<div class="max-w"><h2>${esc(label)}</h2></div>`;
+
       const grid = div('max-w grid grid-fit-250');
-
       people.forEach(person=>{
         const card = div('card person');
         card.innerHTML = `
           ${imageHTML(person.photo, `Photo of ${esc(person.name)}`)}
-          <div><strong>${esc(person.name)}</strong></div>
-          <div class="role">${esc(person.role || '')}</div>
-          <p>${esc(person.bio || '')}</p>
+          <div><strong>${esc(person.name || 'Name')}</strong></div>
+          ${person.role ? `<div class="role">${esc(person.role)}</div>` : ''}
+          ${person.bio  ? `<p>${esc(person.bio)}</p>` : ''}
         `;
         grid.appendChild(card);
       });
@@ -380,62 +422,66 @@
       wrap.appendChild(section);
     });
 
+    if (!existing.length){
+      wrap.appendChild(infoBox('Add team members in content.json → "team": { "highschool": [], ... }'));
+    }
+
     return wrap;
   }
 
-  /* ===========================
-     VIEW: Classes
-     =========================== */
   function renderClasses(){
-    const { classesPage = {} } = state.data.pages;
+    const c = state.data.classes || {};
     const wrap = sectionEl();
 
-    const courses = classesPage.courses || [];
-    const links = [
-      ...(classesPage.intro ? [{ id: 'classes-intro', label: 'Overview' }] : []),
-      ...courses.map(c => ({ id: slugify(c.title), label: c.title }))
-    ];
-    wrap.appendChild(buildSubnav(links));
+    const links = [];
+    if (c.intro) links.push({ id: uniqueId('classes-intro'), label: 'Overview' });
+    links.push(...toArray(c.courses).map(course => ({ id: uniqueId(slugify(course.title || 'course')), label: course.title || 'Course' })));
+    if (links.length) wrap.appendChild(buildSubnav(links));
 
-    if (classesPage?.intro){
-      const intro = div('section card reveal'); intro.id = 'classes-intro';
-      intro.innerHTML = `<div class="max-w"><h2>Classes</h2><p>${esc(classesPage.intro)}</p></div>`;
+    if (c.intro){
+      const intro = div('section card reveal'); intro.id = links[0].id;
+      intro.innerHTML = `<div class="max-w"><h2>Classes</h2><p>${esc(c.intro)}</p></div>`;
       wrap.appendChild(intro);
     }
 
     const grid = div('max-w grid grid-fit-250');
-    courses.forEach(c=>{
-      const id = slugify(c.title);
+    toArray(c.courses).forEach((course, idx)=>{
+      const id = (c.intro ? links[idx+1] : links[idx])?.id || uniqueId(slugify(course.title || 'course'));
       const card = div('card class-item reveal'); card.id = id;
       card.innerHTML = `
-        <h3>${esc(c.title)}</h3>
-        <p>${esc(c.description)}</p>
-        <p><span class="badge">${esc(c.level || 'All levels')}</span> <span class="badge">${esc(c.when || '')}</span></p>
-        ${c.registrationLink ? `<p><a href="${esc(c.registrationLink)}" target="_blank" rel="noopener">Register</a></p>` : ''}
+        <h3>${esc(course.title || 'Untitled')}</h3>
+        ${course.description ? `<p>${esc(course.description)}</p>` : ''}
+        <p>
+          ${course.level ? `<span class="badge">${esc(course.level)}</span>` : ''}
+          ${course.when  ? ` <span class="badge">${esc(course.when)}</span>` : ''}
+        </p>
+        ${course.registrationLink ? `<p><a href="${esc(course.registrationLink)}" target="_blank" rel="noopener">Register</a></p>` : ''}
       `;
       grid.appendChild(card);
     });
-    wrap.appendChild(grid);
 
+    if (!isNonEmptyArray(c.courses)){
+      grid.appendChild(infoBox('Add courses in content.json → "classes.courses": [ ... ]'));
+    }
+
+    wrap.appendChild(grid);
     return wrap;
   }
 
-  /* ===========================
-     VIEW: Contact
-     =========================== */
   function renderContact(){
-    const { site } = state.data;
+    const site = state.data.site;
     const wrap = sectionEl();
 
-    // Two anchors for quick jumping
-    wrap.appendChild(buildSubnav([
-      { id: 'contact-form', label: 'Form' },
-      { id: 'contact-info', label: 'Info' }
-    ]));
+    // Quick links for the two sections
+    const links = [
+      { id: uniqueId('contact-form'), label: 'Form' },
+      { id: uniqueId('contact-info'), label: 'Info' }
+    ];
+    wrap.appendChild(buildSubnav(links));
 
     const block = div('max-w grid');
 
-    const formBox = div('card class-item reveal'); formBox.id = 'contact-form';
+    const formBox = div('card class-item reveal'); formBox.id = links[0].id;
     formBox.innerHTML = `
       <h2>Contact Us</h2>
       <form id="contactForm" novalidate>
@@ -453,14 +499,14 @@
       <p class="muted">This demo uses <code>mailto:</code>. Replace with your backend or a form service.</p>
     `;
 
-    const infoBox = div('card class-item reveal'); infoBox.id = 'contact-info';
-    infoBox.innerHTML = `<h2>Info</h2>${formatContact(site.contact)}`;
+    const infoBoxEl = div('card class-item reveal'); infoBoxEl.id = links[1].id;
+    infoBoxEl.innerHTML = `<h2>Info</h2>${formatContact(site.contact)}`;
 
     block.appendChild(formBox);
-    block.appendChild(infoBox);
+    block.appendChild(infoBoxEl);
     wrap.appendChild(block);
 
-    // Simple mailto handler; you can replace with a real backend
+    // Simple mailto handler
     setTimeout(() => {
       const form = document.getElementById('contactForm');
       form?.addEventListener('submit', (e) => {
@@ -483,10 +529,8 @@
   }
 
   /* ===========================
-     SUBNAV (Quick Links) — build + wire
+     SUBNAV (Quick Links)
      =========================== */
-
-  // Build the sticky chip row. Each chip uses data-scroll="section-id".
   function buildSubnav(items){
     const subnav = document.createElement('nav');
     subnav.className = 'subnav reveal';
@@ -504,25 +548,24 @@
     return subnav;
   }
 
-  // Wire subnav behavior AFTER the view is in the DOM.
   function wireUpSubnav(root){
     const subnav = root.querySelector('.subnav');
     if(!subnav) return;
 
     const track = subnav.querySelector('.track');
 
-    // IMPORTANT: Only enable drag for touch/pen so DESKTOP MOUSE CLICKS always work.
+    // Touch/Pen-only drag so desktop mouse clicks always work
     if (track) enableDragScrollForTouchOnly(track);
 
-    // Delegated CLICK (works on desktop + mobile)
+    // Delegated click (desktop + mobile taps)
     subnav.addEventListener('click', (e) => {
       const a = e.target.closest('a[data-scroll]');
       if (!a) return;
       e.preventDefault();
-      activateChip(subnav, track, a); // highlight + scroll + auto-center chip
+      activateChip(subnav, track, a);
     });
 
-    // Keyboard activation for accessibility (Enter/Space)
+    // Keyboard activation
     subnav.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter' && e.key !== ' ') return;
       const a = e.target.closest('a[data-scroll]');
@@ -531,16 +574,15 @@
       activateChip(subnav, track, a);
     });
 
-    // Scrollspy: as the user scrolls, highlight the section nearest the center
+    // Scrollspy
     const ids = Array.from(subnav.querySelectorAll('a[data-scroll]')).map(a=>a.getAttribute('data-scroll'));
     initScrollSpy(ids, subnav);
   }
 
-  // Activate a chip: visually highlight, scroll to section (centered), and center the chip itself.
   function activateChip(subnav, track, anchor){
     const id = anchor.getAttribute('data-scroll');
 
-    // Immediate visual feedback
+    // Visual state
     subnav.querySelectorAll('a[data-scroll]').forEach(x=>{
       const on = x === anchor;
       x.classList.toggle('is-active', on);
@@ -554,25 +596,38 @@
   /* ===========================
      STORIES (expand/collapse)
      =========================== */
-
-  // Build the inner HTML for a story array (multiple image + text blocks).
-  // If no story provided, return empty string and nothing will render.
   function buildStoryHTML(story){
-    if (!Array.isArray(story) || story.length === 0) return '';
-    // Each block renders as an image (if any) + a paragraph.
-    return story.map(block => `
+  if (!isNonEmptyArray(story)) return '';
+
+  return story.map(block => {
+    const hasImg  = !!(block.image && String(block.image).trim());
+    const hasText = !!(block.text && String(block.text).trim());
+    const textHTML = hasText ? `<p>${esc(block.text)}</p>` : '';
+
+    // With image: keep the standard two-column ".media" layout
+    if (hasImg) {
+      return `
+        <div class="section" style="margin-top:8px">
+          <div class="media">
+            <div>${textHTML}</div>
+            ${imageHTML(block.image, block.imageAlt || 'image')}
+          </div>
+        </div>
+      `;
+    }
+
+    // No image: make the text span the FULL width of the media grid
+    // (grid-column: 1 / -1 makes this child span all columns)
+    return `
       <div class="section" style="margin-top:8px">
         <div class="media">
-          <div>
-            ${block.text ? `<p>${esc(block.text)}</p>` : ''}
-          </div>
-          ${block.image ? imageHTML(block.image, block.imageAlt || '') : '<div></div>'}
+          <div style="grid-column: 1 / -1">${textHTML}</div>
         </div>
       </div>
-    `).join('');
-  }
+    `;
+  }).join('');
+}
 
-  // A small, reusable Expand/Collapse control
   function expandableHTML(){
     return `
       <p>
@@ -583,11 +638,8 @@
     `;
   }
 
-  // Wire the "Read more" button to show/hide the adjacent details panel
   function wireExpandable(button, detailsEl){
     if (!button || !detailsEl) return;
-
-    // Give the details a unique ID so aria-controls is valid
     const uid = 'details-' + Math.random().toString(36).slice(2);
     detailsEl.id = uid;
     button.setAttribute('aria-controls', uid);
@@ -603,30 +655,25 @@
       setState(!now);
     });
 
-    // Optional: close when pressing Escape while focus is within details
-    const keyHandler = (e) => {
+    // Escape to collapse (optional nicety)
+    const onKey = (e) => {
       if (e.key === 'Escape' && button.getAttribute('aria-expanded') === 'true'){
         setState(false);
         button.focus();
       }
     };
-    detailsEl.addEventListener('keydown', keyHandler);
-
-    // Cleanup when page changes
-    state.cleanups.push(() => detailsEl.removeEventListener('keydown', keyHandler));
+    detailsEl.addEventListener('keydown', onKey);
+    state.cleanups.push(() => detailsEl.removeEventListener('keydown', onKey));
   }
 
   /* ===========================
      BEHAVIORS
      =========================== */
-
-  // Persistent hamburger + drawer
   function setupMenu(){
-    menuBtn.addEventListener('click', toggleMenu);
+    menuBtn?.addEventListener('click', toggleMenu);
     document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeMenu(); });
 
-    // Close drawer when clicking a route link
-    navDrawer.addEventListener('click', (e)=>{
+    navDrawer?.addEventListener('click', (e)=>{
       const t = e.target.closest('a[data-route]');
       if(!t) return;
       closeMenu();
@@ -645,7 +692,6 @@
     menuBtn.focus();
   }
 
-  // Reveal-on-scroll for .reveal elements
   function enableReveal(){
     const els = appEl.querySelectorAll('.reveal');
     const io = new IntersectionObserver(entries => {
@@ -660,7 +706,6 @@
     state.observers.push(io);
   }
 
-  // Lazy-load images that have data-src
   function enableLazyImages(){
     const imgs = appEl.querySelectorAll('img[data-src]');
     const io = new IntersectionObserver(entries => {
@@ -677,37 +722,32 @@
     state.observers.push(io);
   }
 
-  // TOUCH/PEN-ONLY drag for the chip row (no mouse handling, so desktop clicks always work)
+  // Touch/Pen-only drag for chip row (desktop mouse clicks remain native)
   function enableDragScrollForTouchOnly(el){
-    // If browser doesn't support Pointer Events, we skip (most modern browsers do).
     if (!('PointerEvent' in window)) return;
 
     let isDown = false, startX = 0, startLeft = 0, id = 0, moved = 0;
-    const threshold = 6; // px — movement under this counts as a "tap"
+    const threshold = 6; // px 'tap' tolerance
 
     el.addEventListener('pointerdown', e => {
-      if (e.pointerType === 'mouse') return;         // desktop mouse: NO drag handling
+      if (e.pointerType === 'mouse') return;
       isDown = true; moved = 0;
       startX = e.clientX; startLeft = el.scrollLeft;
       id = e.pointerId;
       try { el.setPointerCapture(id); } catch {}
-      // On touch we don't mess with cursor or selection; keep it simple
     }, { passive: true });
 
     el.addEventListener('pointermove', e => {
-      if(!isDown) return;
-      if (e.pointerType === 'mouse') return;         // ignore mouse moves
+      if(!isDown || e.pointerType === 'mouse') return;
       const dx = e.clientX - startX;
       moved = Math.max(moved, Math.abs(dx));
-      el.scrollLeft = startLeft - dx;                // drag horizontally
+      el.scrollLeft = startLeft - dx;
     }, { passive: true });
 
     el.addEventListener('pointerup', e => {
       if(!isDown) return;
       isDown = false;
       try { el.releasePointerCapture(id); } catch {}
-
-      // If it was effectively a tap, synthesize activation on the link
       if (moved <= threshold){
         const a = e.target.closest('a[data-scroll]');
         if (a){
@@ -721,33 +761,28 @@
     el.addEventListener('pointerleave',  () => { isDown = false; }, { passive: true });
   }
 
-  // Compute the Y position just below the hero (used when switching routes)
   function headerBottom(){
     const hero = document.querySelector('.hero');
+    if (!hero) return 0;
     const rect = hero.getBoundingClientRect();
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     return scrollTop + rect.top + 1;
   }
 
-  // Keep CSS variable --banner-height in sync with actual top banner height
   function updateBannerHeight(){
     const b = document.querySelector('.top-banner');
     state.bannerHeight = b ? b.getBoundingClientRect().height : 64;
     document.documentElement.style.setProperty('--banner-height', `${state.bannerHeight}px`);
   }
 
-  // Smoothly scroll so a section is centered within the visible area (beneath sticky header + subnav)
   function scrollToSectionCentered(id, subnavEl){
     const el = document.getElementById(id);
     if(!el) return;
 
-    const subnavH = subnavEl
-      ? subnavEl.getBoundingClientRect().height
-      : (document.querySelector('.subnav')?.getBoundingClientRect().height || 0);
-
-    const offsetTop    = state.bannerHeight + subnavH + 8;              // height of sticky chrome
-    const visibleH     = Math.max(0, window.innerHeight - offsetTop);   // viewport below the sticky chrome
-    const targetCenter = offsetTop + (visibleH / 2);                     // pixels from viewport top
+    const subnavH = subnavEl?.getBoundingClientRect()?.height || document.querySelector('.subnav')?.getBoundingClientRect()?.height || 0;
+    const offsetTop    = state.bannerHeight + subnavH + 8;
+    const visibleH     = Math.max(0, window.innerHeight - offsetTop);
+    const targetCenter = offsetTop + (visibleH / 2);
 
     const r        = el.getBoundingClientRect();
     const elCenter = r.top + (r.height / 2);
@@ -755,7 +790,7 @@
 
     window.scrollTo({ top: y, behavior: 'smooth' });
 
-    // Small correction after images/fonts load and change heights
+    // Post-layout correction (fonts/images can shift sizes)
     setTimeout(() => {
       const r2 = el.getBoundingClientRect();
       const elCenter2 = r2.top + (r2.height / 2);
@@ -766,11 +801,9 @@
     }, 120);
   }
 
-  // Scrollspy: highlight the section whose center is nearest the visible center line
   function initScrollSpy(ids, subnav){
     const track = subnav.querySelector('.track');
 
-    // Update chip visuals + center the active chip in its row
     const setActive = (id) => {
       let activeA = null;
       subnav.querySelectorAll('a[data-scroll]').forEach(a=>{
@@ -784,7 +817,7 @@
 
     let ticking = false;
     const update = () => {
-      const subnavH = subnav ? subnav.getBoundingClientRect().height : 0;
+      const subnavH = subnav?.getBoundingClientRect()?.height || 0;
       const offsetTop = state.bannerHeight + subnavH + 8;
       const visibleH  = Math.max(0, window.innerHeight - offsetTop);
       const centerLine = offsetTop + (visibleH / 2);
@@ -810,27 +843,22 @@
 
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
-    setTimeout(update, 0); // run once after paint
+    setTimeout(update, 0);
 
-    // Remove listeners when page swaps
     state.cleanups.push(() => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     });
   }
 
-  // Auto-center the active chip (only if the row overflows)
   function centerActiveChip(track, a){
     if (!track || !a) return;
-    if (track.scrollWidth <= track.clientWidth) return; // nothing to do
-
+    if (track.scrollWidth <= track.clientWidth) return;
     const targetLeft = a.offsetLeft - (track.clientWidth - a.offsetWidth) / 2;
     const clamped = Math.max(0, Math.min(targetLeft, track.scrollWidth - track.clientWidth));
-
     const leftVisible  = track.scrollLeft;
     const rightVisible = leftVisible + track.clientWidth;
     const chipLeft  = a.offsetLeft, chipRight = chipLeft + a.offsetWidth;
-
     const outOfView = chipLeft < leftVisible + 8 || chipRight > rightVisible - 8;
     if (outOfView) track.scrollTo({ left: clamped, behavior: 'smooth' });
   }
@@ -838,15 +866,13 @@
   /* ===========================
      HERO MISSION HIGHLIGHT
      =========================== */
-  function applyMissionText(){
+  function applyMissionText(text){
     const el = document.getElementById('missionText');
-    const desired = 'We build in vitro models to study the mechanisms driving metastasis.';
-    const text = (state.data?.site?.mission || desired).trim();
-
+    const msg = (text || 'We build in vitro models to study the mechanisms driving metastasis.').trim();
     // Pink phrase + trailing period
-    let html = text.replace(/in vitro models/i, '<span class="hero-highlight">$&</span>');
+    let html = msg.replace(/in vitro models/i, '<span class="hero-highlight">$&</span>');
     html = html.replace(/\.\s*$/, '<span class="hero-highlight">.</span>');
-    el.innerHTML = html;
+    if (el) el.innerHTML = html;
   }
 
   /* ===========================
@@ -855,21 +881,30 @@
   function sectionEl(){ const el = document.createElement('section'); el.className = 'section'; return el; }
   function div(cls=''){ const d=document.createElement('div'); if(cls) d.className=cls; return d; }
   function esc(str){ return (str ?? '').toString().replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s])); }
-  function imageHTML(src, alt){ return src ? `<img data-src="${esc(src)}" alt="${esc(alt || '')}" loading="lazy" />` : '<div></div>'; }
-  function infoBox(msg){ const box = div('card class-item reveal'); box.innerHTML = `<div class="max-w"><p>${esc(msg)}</p></div>`; return box; }
-  function labelGroup(g){
-    const map = { highschool:'High School', undergrad:'Undergraduate', grad:'Graduate', postdoc:'Postdoctoral' };
-    return map[g] || g;
+  function imageHTML(src, alt){
+    const s = str(src);
+    if(!s) return '<div></div>';
+    return `<img data-src="${esc(s)}" alt="${esc(alt || '')}" loading="lazy" />`;
   }
-  function slugify(s=''){ return s.toString().toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+  function infoBox(msg){ const box = div('card class-item reveal'); box.innerHTML = `<div class="max-w"><p>${esc(msg)}</p></div>`; return box; }
+  function slugify(s=''){
+    return s.toString().toLowerCase().trim()
+      .replace(/[^a-z0-9]+/g,'-')
+      .replace(/(^-|-$)/g,'');
+  }
+  // Ensure IDs are unique within a page (append -2, -3, ... if needed)
+  function uniqueId(base){
+    const b = base || 'section';
+    const count = (state.idCounters[b] = (state.idCounters[b] || 0) + 1);
+    return count === 1 ? b : `${b}-${count}`;
+  }
   function formatContact(c){
     const lines = [
-      c.address ? esc(c.address) : '',
-      c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '',
-      c.phone ? `<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a>` : ''
+      c?.address ? esc(c.address) : '',
+      c?.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : '',
+      c?.phone ? `<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a>` : ''
     ].filter(Boolean).join('<br/>');
     return `<address>${lines}</address>`;
   }
   function debounce(fn, ms=150){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
-
 })();

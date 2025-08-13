@@ -8,263 +8,114 @@
       "phone": "(520) 555-0123"
     }
   },
-  "pages": {
-    "missionPage": {
-      "sections": [
-        {
-          "slug": "why-metastasis",
-          "title": "Why Metastasis",
-          "body": "Metastasis causes over 90% of cancer deaths. We study how cells sense mechanics and biochemistry as they invade, circulate, and colonize distant sites.",
-          "points": [
-            "Quantify forces and flows in tumor microenvironments",
-            "Dissect cell–matrix interactions at single‑cell resolution",
-            "Translate physics-inspired findings into therapeutics"
-          ],
-          "image": "images/mission_cells.jpg",
-          "imageAlt": "Fluorescent cancer cells"
-        },
-        {
-          "slug": "our-approach",
-          "title": "Our Approach",
-          "body": "We engineer in vitro systems that mimic in vivo cues: microfluidics for flow, 3D bioprinting for architecture, and traction microscopy for mechanics.",
-          "points": [
-            "Open, reproducible toolchains",
-            "Tight coupling of experiment and computation",
-            "Human-relevant, reductionist models"
-          ],
-          "image": "images/mission_chip.jpg",
-          "imageAlt": "Microfluidic chip under microscope"
-        },
-        {
-          "slug": "impact",
-          "title": "Impact",
-          "body": "Simple, robust assays accelerate discovery and make advanced methods accessible to more labs and classrooms.",
-          "image": "images/mission_impact.jpg",
-          "imageAlt": "Students working with devices"
-        }
+
+  "mission": [
+    {
+      "title": "Why Metastasis",
+      "body": "Metastasis drives most cancer mortality. We build reductionist, human-relevant systems to study its mechanisms.",
+      "points": [
+        "Quantify forces and flows in tumor microenvironments",
+        "Single-cell and collective invasion assays",
+        "From biophysics to therapeutic hypotheses"
+      ],
+      "image": "images/mission_cells.jpg",
+      "imageAlt": "Fluorescent cells"
+    },
+    {
+      "title": "Our Approach",
+      "body": "Microfluidics for flow, 3D bioprinting for architecture, and traction microscopy for mechanics.",
+      "points": [
+        "Open, reproducible methods",
+        "Tight experiment–computation loop",
+        "Accessible tools for education"
+      ],
+      "image": "images/mission_chip.jpg",
+      "imageAlt": "Microfluidic chip"
+    }
+  ],
+
+  "research": {
+    "topics": [
+      {
+        "title": "Microfluidics",
+        "summary": "Micro-scale control of gradients and shear to interrogate invasion and transmigration.",
+        "image": "images/microfluidics_chip.jpg",
+        "imageAlt": "Microfluidic chip",
+        "keywords": ["gradients", "shear", "chemotaxis"],
+        "story": [
+          { "text": "Stable chemokine generators drive robust chemotaxis assays,.Stable chemokine generators drive robust chemotaxis assays,Stable chemokine generators drive robust chemotaxis assays,.." },
+          { "text": "Capillary-mimicking channels enable arrest and extravasation studies under flow.", "image": "images/Microfluidic_Droplet-02.png", "imageAlt": "Flow setup" },
+          { "text": "Stable chemokine generators drive robust chemotaxis assays,.Stable chemokine generators drive robust chemotaxis assays,Stable chemokine generators drive robust chemotaxis assays,.." },
+          { "text": "Capillary-mimicking channels enable arrest and extravasation studies under flow.", "image": "images/Microfluidic_Droplet-02.png", "imageAlt": "Flow setup" }
+        ]
+      },
+      {
+        "title": "3D Bioprinting",
+        "summary": "Architected ECM with decoupled stiffness and ligand density.",
+        "image": "images/bioprinting_machine.jpg",
+        "keywords": ["hydrogels", "architecture"],
+        "story": [
+          { "text": "Hybrid matrices reveal how structure gates invasive modes." }
+        ]
+      },
+      {
+        "title": "Traction Force Microscopy",
+        "summary": "Mapping cell forces that coordinate invasion.",
+        "image": "images/tfm_beads.jpg",
+        "story": [
+          { "text": "Bead-embedded gels measure traction during EMT transitions.", "image": "images/tfm_map.png" }
+        ]
+      }
+    ],
+    "references": [
+      { "title": "Microfluidic models of metastasis", "authors": "Doe J., McGhee A.", "journal": "Lab on a Chip", "year": "2023", "doi": "https://doi.org/10.1000/example1" },
+      { "title": "Mechanobiology of tumor progression", "authors": "Lee P., Patel R., McGhee A.", "journal": "Nat Biomed Eng", "year": "2024", "doi": "https://doi.org/10.1000/example2" }
+    ]
+  },
+
+  "projects": [
+    {
+      "title": "Tumor-on-a-Chip",
+      "summary": "Recreates tumor–stroma–flow interactions for drug response prediction.",
+      "tags": ["microfluidics", "drug testing"],
+      "image": "images/tumor_chip.jpg",
+      "story": [
+        { "text": "Programmable dosing via integrated valves.", "image": "images/tumor_valves.jpg" },
+        { "text": "Time-lapse invasion metrics correlate with EMT signatures." }
       ]
     },
-
-    "research": {
-      "topics": [
-        {
-          "slug": "microfluidics",
-          "title": "Microfluidics",
-          "summary": "Micro‑scale control of chemical and mechanical cues to study invasion, intravasation, and extravasation.",
-          "image": "images/microfluidics_chip.jpg",
-          "imageAlt": "Microfluidic chip",
-          "keywords": ["gradients", "shear", "chemotaxis"],
-          "story": [
-            {
-              "text": "We sculpt stable chemokine gradients to probe directional migration and collective invasion dynamics.",
-              "image": "images/microfluidics_gradient.png",
-              "imageAlt": "Gradient generator layout"
-            },
-            {
-              "text": "Shear‑tunable channels model capillaries to study arrest and transmigration under physiologic flow.",
-              "image": "images/microfluidics_flow.jpg",
-              "imageAlt": "Flow setup"
-            }
-          ]
-        },
-        {
-          "slug": "3d-bioprinting",
-          "title": "3D Bioprinting",
-          "summary": "Architected ECM with spatial control over stiffness, porosity, and ligand presentation.",
-          "image": "images/bioprinting_machine.jpg",
-          "imageAlt": "Bioprinter",
-          "keywords": ["hydrogels", "matrix", "architecture"],
-          "story": [
-            {
-              "text": "Layer‑by‑layer patterning yields hybrid matrices that decouple stiffness from ligand density.",
-              "image": "images/bioprinting_construct.jpg",
-              "imageAlt": "Printed construct"
-            },
-            {
-              "text": "Printed invasion corridors allow high‑throughput screening of anti‑metastatic compounds."
-            }
-          ]
-        },
-        {
-          "slug": "traction-force-microscopy",
-          "title": "Traction Force Microscopy",
-          "summary": "Quantifies how cells push/pull on their surroundings to coordinate invasion.",
-          "image": "images/tfm_beads.jpg",
-          "imageAlt": "TFM beads",
-          "keywords": ["mechanobiology", "forces", "deformation"],
-          "story": [
-            {
-              "text": "Bead‑embedded gels report sub‑cellular traction maps during EMT transitions.",
-              "image": "images/tfm_map.png",
-              "imageAlt": "Traction map"
-            }
-          ]
-        },
-        {
-          "slug": "bead-based-elisa",
-          "title": "Bead‑based ELISA",
-          "summary": "Sensitive multiplexed assays to track secreted factors in microfluidic effluent.",
-          "image": "images/bead_elisa.jpg",
-          "imageAlt": "Bead ELISA",
-          "keywords": ["cytokines", "multiplex", "automation"],
-          "story": [
-            {
-              "text": "On‑chip sample handling couples directly to bead capture, minimizing losses.",
-              "image": "images/elisa_flow.jpg",
-              "imageAlt": "On‑chip ELISA flow"
-            }
-          ]
-        },
-        {
-          "slug": "biomechanics",
-          "title": "Biomechanics",
-          "summary": "How stiffness, confinement, and viscoelasticity steer metastatic programs.",
-          "image": "images/biomechanics_matrix.jpg",
-          "imageAlt": "Matrix mechanics",
-          "keywords": ["stiffness", "confinement", "viscoelasticity"],
-          "story": [
-            {
-              "text": "Micro‑ridge channels impose nuclear deformation to test mechano‑genomic responses.",
-              "image": "images/confinement_channel.jpg",
-              "imageAlt": "Confinement channel"
-            },
-            {
-              "text": "Viscoelastic gels reveal time‑dependent mechanosensing distinct from purely elastic substrates."
-            }
-          ]
-        }
-      ],
-      "references": [
-        {
-          "title": "Microfluidic models of cancer metastasis",
-          "authors": "Doe J., McGhee A.",
-          "journal": "Lab on a Chip",
-          "year": "2023",
-          "doi": "https://doi.org/10.1000/example1"
-        },
-        {
-          "title": "Mechanobiology of tumor progression",
-          "authors": "Lee P., Patel R., McGhee A.",
-          "journal": "Nature Biomed Eng",
-          "year": "2024",
-          "doi": "https://doi.org/10.1000/example2"
-        },
-        {
-          "title": "Printed matrices for invasion assays",
-          "authors": "Nguyen T., McGhee A.",
-          "journal": "Advanced Materials",
-          "year": "2022",
-          "doi": "https://doi.org/10.1000/example3"
-        }
-      ]
-    },
-
-    "projects": {
-      "projects": [
-        {
-          "slug": "tumor-on-a-chip",
-          "title": "Tumor‑on‑a‑Chip",
-          "summary": "Recreates tumor–stroma–flow interactions for drug response prediction.",
-          "tags": ["microfluidics", "drug testing"],
-          "image": "images/tumor_chip.jpg",
-          "imageAlt": "Tumor‑on‑a‑chip device",
-          "story": [
-            {
-              "text": "Integrated valves allow programmable dosing schedules and washout dynamics.",
-              "image": "images/tumor_valves.jpg",
-              "imageAlt": "Valve manifold"
-            },
-            {
-              "text": "Time‑lapse invasion metrics correlate with RNA‑seq signatures of EMT."
-            }
-          ]
-        },
-        {
-          "slug": "open-pump",
-          "title": "Open Microfluidic Pump",
-          "summary": "Low‑cost, PCB‑based pump for perfusion assays and classroom use.",
-          "tags": ["hardware", "open source"],
-          "image": "images/open_pump.jpg",
-          "imageAlt": "Open pump prototype",
-          "story": [
-            {
-              "text": "Closed‑loop control holds flow within 2% across common head pressures.",
-              "image": "images/pump_bench.jpg",
-              "imageAlt": "Bench setup"
-            }
-          ]
-        },
-        {
-          "slug": "mechanosensing-atlas",
-          "title": "Mechanosensing Atlas",
-          "summary": "A cross‑assay map linking forces, gene programs, and phenotypes.",
-          "tags": ["atlas", "omics"],
-          "image": "images/mech_atlas.jpg",
-          "imageAlt": "Data atlas mock",
-          "story": [
-            {
-              "text": "Joint embeddings align TFM features with transcriptomic trajectories.",
-              "image": "images/atlas_embedding.png",
-              "imageAlt": "Joint embedding"
-            }
-          ]
-        }
-      ]
-    },
-
-    "team": {
-      "highschool": [
-        {
-          "name": "Jamal Reed",
-          "role": "HS Intern",
-          "photo": "images/jamal.jpg",
-          "bio": "Designs and prints fixtures for microfluidic alignment."
-        }
-      ],
-      "undergrad": [
-        {
-          "name": "Maria Lopez",
-          "role": "Undergraduate Researcher",
-          "photo": "images/maria_lopez.jpg",
-          "bio": "Develops gradient generators and automates image analysis."
-        }
-      ],
-      "grad": [
-        {
-          "name": "Alex Johnson",
-          "role": "PhD Candidate",
-          "photo": "images/alex_johnson.jpg",
-          "bio": "Studies force‑dependent invasion using TFM and confinement assays."
-        }
-      ],
-      "postdoc": [
-        {
-          "name": "Priya Singh",
-          "role": "Postdoctoral Scholar",
-          "photo": "images/priya_singh.jpg",
-          "bio": "Leads bioprinting platform and matrix mechanics studies."
-        }
-      ]
-    },
-
-    "classesPage": {
-      "intro": "We teach hands‑on modules that blend biophysics, microfabrication, and quantitative analysis.",
-      "courses": [
-        {
-          "title": "Microfluidics for Biologists",
-          "description": "From mold to experiment: soft lithography, flow control, and gradient design.",
-          "level": "Upper‑division",
-          "when": "Fall",
-          "registrationLink": "https://example.org/register/microfluidics"
-        },
-        {
-          "title": "Mechanobiology Lab",
-          "description": "TFM, rheology, and viscoelastic materials with live‑cell imaging.",
-          "level": "Graduate",
-          "when": "Spring",
-          "registrationLink": "https://example.org/register/mechlab"
-        }
+    {
+      "title": "Open Microfluidic Pump",
+      "summary": "Low-cost PCB-based pump for perfusion assays and classrooms.",
+      "tags": ["hardware", "open-source"],
+      "image": "images/open_pump.jpg",
+      "story": [
+        { "text": "Closed-loop control maintains stable flow across head pressures.", "image": "images/pump_bench.jpg" }
       ]
     }
+  ],
+
+  "team": {
+    "postdoc": [
+      { "name": "Jamal Reed",  "role": "HS Intern",             "photo": "images/jamal.jpg",        "bio": "Designs fixtures for chip alignment." },
+      { "name": "Jamal Reed",  "role": "HS Intern",             "photo": "images/jamal.jpg",        "bio": "Designs fixtures for chip alignment." }
+    ],
+    "undergrad": [
+      { "name": "Maria Lopez",  "role": "Undergraduate Researcher", "photo": "images/maria_lopez.jpg", "bio": "Builds gradient generators, automates analysis." }
+    ],
+    "grad": [
+      { "name": "Alex Johnson", "role": "PhD Candidate",        "photo": "images/alex_johnson.jpg", "bio": "Force-dependent invasion, TFM + confinement assays." }
+    ],
+    "highschool": [
+      { "name": "Priya Singh",  "role": "Postdoctoral Scholar", "photo": "images/priya_singh.jpg",  "bio": "Leads bioprinting and matrix mechanics." }
+    ]
+  },
+
+  "classes": {
+    "intro": "Hands-on modules blending biophysics, microfabrication, and quantitative analysis.",
+    "courses": [
+      { "title": "Microfluidics for Biologists", "description": "Soft lithography, flow control, gradient design.", "level": "Upper-division", "when": "Fall",   "registrationLink": "https://example.org/register/microfluidics" },
+      { "title": "Mechanobiology Lab",          "description": "TFM, rheology, viscoelastic materials + live imaging.", "level": "Graduate",     "when": "Spring", "registrationLink": "https://example.org/register/mechlab" }
+    ]
   }
 }

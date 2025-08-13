@@ -17,11 +17,13 @@
   <header id="site-header" class="site-header" role="banner">
     <!-- Always-visible banner -->
     <div class="top-banner">
-      <a class="logo" href="#/mission" aria-label="McGheeLab home">
-        <!-- Simple SVG logo: text-based, crisp at any DPI -->
-        <svg class="logo-svg" viewBox="0 0 400 60" role="img" aria-labelledby="logoTitle">
-          <title id="logoTitle">McGheeLab</title>
-          <text x="12" y="42" font-family="system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="36" font-weight="700" letter-spacing="1">McGheeLab</text>
+      <a class="brand" href="#/mission" aria-label="McGheeLab">
+        <!-- Simple, accessible animated wordmark -->
+        <svg class="logo-animated" viewBox="0 0 880 140" role="img" aria-hidden="true">
+          <!-- Position baseline at y=100 for clean cap height; tweak if your font differs -->
+          <text x="0" y="100" class="text-body">
+            McGheeLab<tspan class="dot">•</tspan>
+          </text>
         </svg>
       </a>
 
