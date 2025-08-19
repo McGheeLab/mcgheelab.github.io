@@ -52,6 +52,11 @@
     // Sticky offsets
     updateBannerHeight();
     window.addEventListener('resize', debounce(updateBannerHeight, 150));
+    window.addEventListener('orientationchange', updateBannerHeight);
+    window.addEventListener('load', updateBannerHeight);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(updateBannerHeight);
+    }
 
     // Router
     window.addEventListener('hashchange', onRouteChange);
@@ -85,7 +90,7 @@
         mission: [],
         research: { topics: [], references: [] },
         projects: [],
-        team: { highschool: [], undergrad: [], grad: [], postdoc: [] },
+        team: { highschool: [], undergrad: [], grad: [], postdoc: [], alumni: [] },
         classes: { intro: "", courses: [] }
       };
     }
@@ -126,7 +131,8 @@
       highschool: toArray(teamSrc.highschool).map(normalizePerson),
       undergrad:  toArray(teamSrc.undergrad).map(normalizePerson),
       grad:       toArray(teamSrc.grad).map(normalizePerson),
-      postdoc:    toArray(teamSrc.postdoc).map(normalizePerson)
+      postdoc:    toArray(teamSrc.postdoc).map(normalizePerson),
+      alumni:    toArray(teamSrc.alumni).map(normalizePerson)
     };
 
     const classesSrc = raw.classes || raw?.pages?.classesPage || {};
@@ -392,7 +398,8 @@
       ['postdoc',    'Postdoctoral'],
       ['grad',       'Graduate'],
       ['undergrad',  'Undergraduate'],
-      ['highschool', 'High School']
+      ['highschool', 'High School'],
+      ['alumni', 'Alumni']
 
     ];
 
