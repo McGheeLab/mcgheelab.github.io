@@ -454,8 +454,22 @@ button{
   cursor: pointer;
   font-weight: 700;
 }
-button:hover{ filter: brightness(1.05); } /* Subtle hover lift */
+button:hover{ filter: brightness(1.2); } /* Subtle hover lift */
 
+a.btn{
+  display: inline-block;
+  background: var(--accent);
+  color: #000000;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 0;
+}
+a.btn:hover{
+  filter: brightness(1.2);
+  text-decoration: none;
+}
 
 /* =========================================
    08) FOOTER

@@ -77,13 +77,14 @@
       "summary": "We are developing an open microfluidic syringe pump that combines precise temperature control with multi-channel flow delivery. The system can heat or cool bioinks and culture media in real time, ensuring optimal conditions throughout experiments. Designed for seamless integration with microfluidic chips, it enables on-demand droplet generation and supports a wide range of advanced tissue engineering and cell culture applications.",
       "tags": ["microfluidics", "dropplet generation"],
       "story": [
-        { "text": "We are writing our story, come back later." }
+        { "text": "We are writing our story, come back later."}
       ]
     },
     {
       "title": "Auto In-Vitro platform",
       "summary": "Our automated in-vitro device maintains and monitors cell cultures in a standard well plate format. A cooled reservoir keeps media and reagents fresh, while an integrated 3D printing module enables continuous fabrication directly into the culture environment. Coupled with real-time imaging from an integrated microscope, the system supports long-term experiments with minimal manual intervention.",
       "tags": ["continuous cell culture", "automation"],
+      "link": "https://autoinvitro.com",
       "story": [
         { "text": "We are writing our story, come back later." }
       ]
@@ -102,15 +103,11 @@
       { "name": "Cris Angeles",  
       "role": "Junior Undergraduate", 
       "photo": "images/cris_angeles.jpg", 
-      "bio": "" },
-      { "name": "Nataly Karlinsey",  
-      "role": "Senior Undergraduate", 
-      "photo": "images/nataly_karlinsey.jpg", 
-      "bio": "" },
+      "bio": "" },      
       { "name": "Ethan Lin",  
       "role": "Senior Undergraduate", 
-      "photo": "images/ethan_lin.jpg", 
-      "bio": "" },
+      "photo": "Images/team/ethan_lin.jpg", 
+      "bio": "I am a senior undergraduate majoring in biomedical engineering with minors in electrical and computer engineering, math, and environmental engineering. I am currently working on developing a microfluidic system with LLS for organ modeling. This system can be used for culturing patient derived tissue ex-plants for precision medicine or creating 3D cell cultures to study their behavior. Outside of lab, I enjoy running marathons, playing soccer, or listening to vinyl." },
       { "name": "Ezekiel Pangelinan",  
       "role": "Senior Undergraduate", 
       "photo": "images/ezekiel_pangelinan.jpg", 
@@ -152,7 +149,11 @@
       { "name": "Elijah Keeswood",  
       "role": "Masters of Science", 
       "photo": "images/elijah_keeswood.jpg",  
-      "bio": "Thesis title \"Traction-Force ELISA\" \n Graduated Summer 2025" }
+      "bio": "Thesis title \"Traction-Force ELISA\" \n Graduated Summer 2025" },      
+      { "name": "Nataly Karlinsey",  
+      "role": "Senior Undergraduate", 
+      "photo": "images/nataly_karlinsey.jpg", 
+      "bio": "" }
     ]
   },
 

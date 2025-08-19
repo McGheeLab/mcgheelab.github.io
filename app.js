@@ -155,11 +155,9 @@
     const title = str(item?.title);
     const slug  = slugify(item?.slug || title || 'section');
 
-    // Single image or array — turn into a single "lead" image
     const image = item?.image || (isNonEmptyArray(item?.images) ? item.images[0]?.src : '');
     const imageAlt = item?.imageAlt || (isNonEmptyArray(item?.images) ? item.images[0]?.alt : '');
 
-    // Story can be "story" (preferred) or "details" (compat) and can contain strings or objects
     const storyBlocks = toArray(item?.story?.length ? item.story : item?.details)
       .map(block => {
         if (typeof block === 'string') return { text: block, image: '', imageAlt: '' };
@@ -170,6 +168,8 @@
         };
       });
 
+    const link = str(item?.link || item?.hyperlink || '');   // <— add this
+
     return {
       slug,
       title,
@@ -178,7 +178,8 @@
       imageAlt: str(imageAlt || title),
       keywords: toArray(item?.keywords).map(str),
       tags: toArray(item?.tags).map(str),
-      story: storyBlocks
+      story: storyBlocks,
+      link                                   // <— include it
     };
   }
 
@@ -371,8 +372,10 @@
         <h3>${esc(p.title || 'Untitled')}</h3>
         ${p.summary ? `<p>${esc(p.summary)}</p>` : ''}
         ${isNonEmptyArray(p.tags) ? `<p>${p.tags.map(t=>`<span class="badge">${esc(t)}</span>`).join(' ')}</p>` : ''}
+        ${p.link ? `<p><a class="btn" href="${esc(p.link)}" target="_blank" rel="noopener">View Project Page</a></p>` : ''}
         ${storyHTML ? `${expandableHTML()}<div class="expandable-details" hidden>${storyHTML}</div>` : ''}
       `;
+
       if (storyHTML){
         const btn = item.querySelector('.expand-toggle');
         const det = item.querySelector('.expandable-details');
