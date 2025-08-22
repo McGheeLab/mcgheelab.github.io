@@ -116,8 +116,8 @@
     "grad": [
       { "name": "Alia Starman", 
       "role": "Second Year PhD Student",        
-      "photo": "images/alia_starman.jpg", 
-      "bio": "Develops microfluidic models of tumor-stroma interactions." },
+      "photo": "Images/team/alia_starman.jpg", 
+      "bio": "I earned my bachelor’s in Bioengineering from Oregon State University, where I studied neuronal gap junction networks and communication. Since joining the McGhee Lab as a PhD student in 2024, my research has focused on in-vitro models of the tumor microenvironment to uncover how cancer grows, spreads, and responds to therapy." },
       { "name": "Gabriel Declerq", 
       "role": "First Year PhD Student",        
       "photo": "Images/team/gabriel_declercq.png", 
